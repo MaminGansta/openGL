@@ -3,8 +3,18 @@
 #include <GLFW/glfw3.h>
 #include <SOIL.h>
 
+#define PI 3.14159265359f
+
+// glm
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
+
+
 #include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
+
 static void error_callback(int error, const char* description)
 {
     fputs(description, stderr);
@@ -18,18 +28,22 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 
 // Shaders
 const GLchar* vectexShaderSource = 
-    "#version 330 core\n"
-    "layout(location = 0) in vec3 position;\n"
-    "layout(location = 1) in vec3 color;   \n"
-    "layout(location = 2) in vec2 texCoord;\n"
-    "out vec3 ourColor;\n"
-    "out vec2 TexCoord;\n"
-    "void main()\n"
-    "{\n"
-    "    gl_Position = vec4(position, 1.0f);\n"
-    "    ourColor = color;\n"
-    "    TexCoord = texCoord;\n"
-    "}";
+    "#version 330 core                                  \n"
+    "layout(location = 0) in vec3 position;             \n"
+    "layout(location = 1) in vec3 color;                \n"
+    "layout(location = 2) in vec2 texCoord;             \n"
+    "                                                   \n"
+    "out vec3 ourColor;                                 \n"
+    "out vec2 TexCoord;                                 \n"
+    "                                                   \n"
+    "uniform mat4 transform;                            \n"
+    "void main()                                        \n"
+    "{                                                  \n"
+    "    gl_Position = transform * vec4(position, 1.0f);\n"
+    "    ourColor = color;                              \n"
+    "    TexCoord = vec2(texCoord.x, 1.0 - texCoord.y); \n"
+    "}                                                  \n";
+
 const GLchar* fragmentShaderSource =
     "#version 330 core                             \n"
     "in vec3 ourColor;                             \n"
@@ -161,10 +175,10 @@ int main(void)
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_DYNAMIC_DRAW);
 
     // vertex attrib
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
@@ -199,21 +213,37 @@ int main(void)
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
     glGenerateMipmap(GL_TEXTURE_2D);
-
+  
     // free data
     SOIL_free_image_data(image);
     glBindTexture(GL_TEXTURE_2D, 0);
 
+    // glm stuff
+    glm::mat4 identity(1.0f);
+    glm::mat4 trans(1.0f);
+    float angle = 0;
 
+    // get uniform id
+    GLuint transformLoc = glGetUniformLocation(shaderProgram, "transform");
 
+    
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
         
+        // calculate the rotation matrix
+        angle += 0.005f;
+        trans = glm::rotate(identity, angle, glm::vec3(0.0, 0.0, 1.0));
+        trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+
+
         // draw
         // clear screen
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+
+        // set uniform
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glUseProgram(shaderProgram);
