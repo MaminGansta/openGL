@@ -194,7 +194,6 @@ int main(void)
     int uni_lightPos = glGetUniformLocation(cubeShader, "lightPos");
     glUniform3f(uni_objectColorLoc, 1.0f, 0.5f, 0.31f);
     glUniform3f(uni_lightColorLoc, 1.0f, 1.0f, 1.0f); // light color
-    glUniform3f(uni_lightPos, lightPos.x, lightPos.y, lightPos.z); // light pos
 
 
     glUseProgram(lighterShader);
@@ -230,7 +229,9 @@ int main(void)
         view = camera.GetViewMatrix();
 
         // move the lighter
-        float radius = 5.0f;
+        float radius = 3.0f;
+        lightPos.x = cube_pos.x + sinf(now) * radius;
+        lightPos.z = cube_pos.z + cosf(now) * radius;
 
         // clear screen
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -267,6 +268,7 @@ int main(void)
         glUniformMatrix4fv(uni_cube_proj, 1, GL_FALSE, glm::value_ptr(projection));
         glUniform3f(uni_objectColorLoc, 1.0f, 0.5f, 0.31f);
         glUniform3f(uni_lightColorLoc, 1.0f, 1.0f, 1.0f); // light color
+        glUniform3f(uni_lightPos, lightPos.x, lightPos.y, lightPos.z); // light pos
 
         // draw cube
         glBindVertexArray(cubeVAO);
