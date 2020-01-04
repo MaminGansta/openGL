@@ -14,11 +14,9 @@ float last_time = 0;
 float delta_time = 0;
 bool input[512];
 
-bool was_pressed(int code)
+bool pressed(int code)
 {
-    bool res = input[code];
-    input[code] = false;
-    return res;
+    return input[code];
 }
 
 // glm
@@ -49,24 +47,24 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         glfwSetWindowShouldClose(window, GL_TRUE);
 
     if (key == GLFW_KEY_W)
-        input[GLFW_KEY_W] = true;
+        input[GLFW_KEY_W] = action;
     if (key == GLFW_KEY_S)
-        input[GLFW_KEY_S] = true;
+        input[GLFW_KEY_S] = action;
     if (key == GLFW_KEY_A)
-        input[GLFW_KEY_A] = true;
+        input[GLFW_KEY_A] = action;
     if (key == GLFW_KEY_D)
-        input[GLFW_KEY_D] = true;
+        input[GLFW_KEY_D] = action;
     if (key == GLFW_KEY_D)
-        input[GLFW_KEY_D] = true;
-    
+        input[GLFW_KEY_D] = action;
+
     if (key == GLFW_KEY_UP)
-        input[GLFW_KEY_UP] = true;
+        input[GLFW_KEY_UP] = action;
     if (key == GLFW_KEY_DOWN)
-        input[GLFW_KEY_DOWN] = true;
+        input[GLFW_KEY_DOWN] = action;
     if (key == GLFW_KEY_LEFT)
-        input[GLFW_KEY_LEFT] = true;
+        input[GLFW_KEY_LEFT] = action;
     if (key == GLFW_KEY_RIGHT)
-        input[GLFW_KEY_RIGHT] = true;
+        input[GLFW_KEY_RIGHT] = action;
 
 }
 

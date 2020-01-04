@@ -12,7 +12,7 @@ public:
     GLfloat Yaw = -PI / 2;
     GLfloat Pitch = 0;
     // Camera options
-    float MaxSpeed = 10.0f;
+    float MaxSpeed = 6.0f;
     float speed_x = 0;
     float speed_y = 0;
     float speed_delta = 0.5f;
@@ -26,7 +26,7 @@ public:
         return glm::lookAt(Position, Position + Front, Up);
     }
 
-    void update()
+    void update(float delta_time)
     {
         Pitch = fabs(Pitch) > PI / 2 - 0.01 ? sgn(Pitch) * PI / 2 - 0.01 : Pitch;
 
@@ -64,9 +64,9 @@ public:
         if (pressed(GLFW_KEY_RIGHT))
             Yaw += 3 * delta_time;
 
-        // std::cout << Pitch << ' ' << Yaw << '\n';
+       // std::cout << Pitch << ' ' << Yaw << '\n';
 
-         // movement
+        // movement
         Position += Front * speed_x * delta_time;
         Position += Right * speed_y * delta_time;
 
