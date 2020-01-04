@@ -18,14 +18,5 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="shaders\shaders.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="shaders\basic.shader" />
   </ItemGroup>
 </Project>

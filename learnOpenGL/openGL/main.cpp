@@ -5,55 +5,70 @@
 
 #define PI 3.14159265359f
 
+template <typename T>
+int sgn(T num) { return (num > T(0)) - (num < T(0)); }
+
+// input globals
+float input_check_interval = 0.001f;
+float last_time = 0;
+float delta_time = 0;
+bool input[512];
+
+bool was_pressed(int code)
+{
+    bool res = input[code];
+    input[code] = false;
+    return res;
+}
+
 // glm
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+
+#include "shaders/shaders.cpp"
+#include "camera.cpp"
+
+
 
 static void error_callback(int error, const char* description)
 {
     fputs(description, stderr);
 }
+
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
+
+    if (key == GLFW_KEY_W)
+        input[GLFW_KEY_W] = true;
+    if (key == GLFW_KEY_S)
+        input[GLFW_KEY_S] = true;
+    if (key == GLFW_KEY_A)
+        input[GLFW_KEY_A] = true;
+    if (key == GLFW_KEY_D)
+        input[GLFW_KEY_D] = true;
+    if (key == GLFW_KEY_D)
+        input[GLFW_KEY_D] = true;
+    
+    if (key == GLFW_KEY_UP)
+        input[GLFW_KEY_UP] = true;
+    if (key == GLFW_KEY_DOWN)
+        input[GLFW_KEY_DOWN] = true;
+    if (key == GLFW_KEY_LEFT)
+        input[GLFW_KEY_LEFT] = true;
+    if (key == GLFW_KEY_RIGHT)
+        input[GLFW_KEY_RIGHT] = true;
+
 }
-
-
-// Shaders
-const GLchar* vectexShaderSource = 
-    "#version 330 core                                  \n"
-    "layout(location = 0) in vec3 position;             \n"
-    "layout(location = 1) in vec3 color;                \n"
-    "layout(location = 2) in vec2 texCoord;             \n"
-    "                                                   \n"
-    "out vec3 ourColor;                                 \n"
-    "out vec2 TexCoord;                                 \n"
-    "                                                   \n"
-    "uniform mat4 transform;                            \n"
-    "void main()                                        \n"
-    "{                                                  \n"
-    "    gl_Position = transform * vec4(position, 1.0f);\n"
-    "    ourColor = color;                              \n"
-    "    TexCoord = vec2(texCoord.x, 1.0 - texCoord.y); \n"
-    "}                                                  \n";
-
-const GLchar* fragmentShaderSource =
-    "#version 330 core                             \n"
-    "in vec3 ourColor;                             \n"
-    "in vec2 TexCoord;                             \n"
-    "out vec4 color;                               \n"
-    "uniform sampler2D ourTexture;                 \n"
-    "void main()                                   \n"
-    "{                                             \n"
-    "    color = texture(ourTexture, TexCoord);    \n"
-    "}                                             \n";
 
 int main(void)
 {
@@ -79,7 +94,6 @@ int main(void)
 
     // set callback function
     glfwSetKeyCallback(window, key_callback);
-    
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)
@@ -94,68 +108,12 @@ int main(void)
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
 
-    // compile shaders
-    // vertex shader
-    GLint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vectexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    // check the complilation result
-    {
-        GLint success;
-        GLchar info[512];
-        glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-        if (!success)
-        {
-            glGetShaderInfoLog(vertexShader, 512, NULL, info);
-            printf("%s", info);
-        }
-    }
-    // fragment shader
-    GLint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    // agen check the result
-    {
-        GLint success;
-        GLchar info[512];
-        glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-        if (!success)
-        {
-            glGetShaderInfoLog(fragmentShader, 512, NULL, info);
-            printf("%s", info);
-        }
-    }
-    // Link shaders
-    GLint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    // And check the retult
-    {
-        GLint success;
-        GLchar info[512];
-        glGetProgramiv(shaderProgram, GL_COMPILE_STATUS, &success);
-        if (!success)
-        {
-            glGetProgramInfoLog(shaderProgram, 512, NULL, info);
-            printf("%s", info);
-        }
-    }
-    // delete both shaders
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    // camera
+    Camera camera;
 
-    //GLfloat vertices[] = {
-    //    // Позиции          // Цвета             // Текстурные координаты
-    //     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // Верхний правый
-    //     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // Нижний правый
-    //    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // Нижний левый
-    //    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // Верхний левый
-    //};
-    //GLuint indices[] = {  // Note that we start from 0!
-    //    0, 1, 3,  // First Triangle
-    //    1, 2, 3   // Second Triangle
-    //};
+    // create shader program
+    int shaderProgram;
+    make_program("shaders/basic.shader", shaderProgram);
 
     float vertices[] = {
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -257,9 +215,6 @@ int main(void)
     glm::mat4 identity(1.0f);
     glm::mat4 trans(1.0f);
 
-    //glm::mat4 model(1.0f);
-    //model = glm::rotate(model, -PI/3, glm::vec3(1.0f, 0.0f, 0.0f));
-
     glm::mat4 view(1.0f);
     view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
@@ -286,14 +241,17 @@ int main(void)
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };
 
+
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
+
+        // process input 
+        camera.update();
         
         // calculate matrixes
-        view = glm::translate(identity, glm::vec3(0.0f, 0.0f, -3.0f));
         projection = glm::perspective<float>(PI / 4, (float)width / height, 0.1f, 100.0f);
-        //trans = projection * view * model;
+        view = camera.GetViewMatrix();
 
         // draw
         // clear screen
@@ -324,6 +282,13 @@ int main(void)
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);
+
+        // time
+        float now = glfwGetTime();
+        delta_time =  now - last_time;
+        last_time = now;
+
+        std::cout << delta_time << '\n';
     }
     
     // clear the space
