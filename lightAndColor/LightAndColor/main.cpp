@@ -9,55 +9,23 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <cstdint>
+
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <sstream>
-
-#define PI 3.14159265359f
-
-template <typename T>
-int sgn(T num) { return (num > T(0)) - (num < T(0)); }
-
-bool input[512];
-bool pressed(int code)
-{
-    return input[code];
-}
+#include <vector>
 
 #include "shaders/shaders.cpp"
+#include "glstuff.cpp"
 #include "camera.cpp"
+#include "buffersAbstraction.cpp"
 
 
 static void error_callback(int error, const char* description)
 {
     fputs(description, stderr);
-}
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GL_TRUE);
-
-    if (key == GLFW_KEY_W)
-        input[GLFW_KEY_W] = action;
-    if (key == GLFW_KEY_S)
-        input[GLFW_KEY_S] = action;
-    if (key == GLFW_KEY_A)
-        input[GLFW_KEY_A] = action;
-    if (key == GLFW_KEY_D)
-        input[GLFW_KEY_D] = action;
-    if (key == GLFW_KEY_D)
-        input[GLFW_KEY_D] = action;
-
-    if (key == GLFW_KEY_UP)
-        input[GLFW_KEY_UP] = action;
-    if (key == GLFW_KEY_DOWN)
-        input[GLFW_KEY_DOWN] = action;
-    if (key == GLFW_KEY_LEFT)
-        input[GLFW_KEY_LEFT] = action;
-    if (key == GLFW_KEY_RIGHT)
-        input[GLFW_KEY_RIGHT] = action;
-
 }
 
 int main(void)
@@ -81,8 +49,14 @@ int main(void)
     }
     glfwMakeContextCurrent(window);
 
-    // set callback function
+    // set callback functions
     glfwSetKeyCallback(window, key_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+    
+    glfwSetCursorPos(window, lastX, lastY);
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 
     // set glew
     glewExperimental = GL_TRUE;
@@ -152,30 +126,21 @@ int main(void)
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
 
-    uint32_t lighterVAO, cubeVAO, VBO;
-    glGenVertexArrays(1, &lighterVAO);
-    glGenVertexArrays(1, &cubeVAO);
-    glGenBuffers(1, &VBO);
 
-    // bind cube VAO
-    glBindVertexArray(cubeVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    
+    VertexBuffer cubeBuffer(vertices, sizeof(vertices), GL_STATIC_DRAW);
+
+   VertexArray cubeVA;
+    VertexBufferLayout layout;
+    layout.push<float>(3);
+    layout.push<float>(3);
+    cubeVA.addBuffer(cubeBuffer, layout);
+  
     // bind lighter VAO
-    glBindVertexArray(lighterVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    VertexArray lighterVA;
+    VertexBufferLayout lighterLayout;
+    lighterLayout.push<float>(3);
+    lighterLayout.push<float>(3);
+    lighterVA.addBuffer(cubeBuffer, lighterLayout);
 
     // cube and lighter position 
     glm::vec3 lightPos(2.5f, 0.0f, -6.0f);
@@ -206,9 +171,6 @@ int main(void)
     // zbuffer anable
     glEnable(GL_DEPTH_TEST);
 
-    float last_time = 0;
-    float delta_time = 0;
-
     // some matrix staff
     glm::mat4 identity(1.0f);
     glm::mat4 projection = glm::perspective<float>(PI / 4, (float)window_width / window_height, 0.1f, 100.0f);
@@ -225,7 +187,7 @@ int main(void)
         glfwPollEvents();
 
         // process input 
-        camera.update(delta_time);
+        camera.update();
         view = camera.GetViewMatrix();
 
         // move the lighter
@@ -249,7 +211,8 @@ int main(void)
         glUniformMatrix4fv(uni_lighter_proj, 1, GL_FALSE, glm::value_ptr(projection));
         
         // draw lighter
-        glBindVertexArray(lighterVAO);
+        //glBindVertexArray(lighterVAO);
+        lighterVA.bind();
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
         
@@ -271,8 +234,9 @@ int main(void)
         glUniform3f(uni_lightPos, lightPos.x, lightPos.y, lightPos.z); // light pos
 
         // draw cube
-        glBindVertexArray(cubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        //glBindVertexArray(cubeVAO);
+        cubeVA.bind();
+        glcall(glDrawArrays(GL_TRIANGLES, 0, 36));
         glBindVertexArray(0);
 
 
@@ -280,9 +244,6 @@ int main(void)
     }
 
     // clear the space
-    glDeleteVertexArrays(1, &cubeVAO);
-    glDeleteVertexArrays(1, &lighterVAO);
-    glDeleteBuffers(1, &VBO);
 
     glfwDestroyWindow(window);
     glfwTerminate();
