@@ -3,21 +3,6 @@
 #include <GLFW/glfw3.h>
 #include <SOIL.h>
 
-#define PI 3.14159265359f
-
-template <typename T>
-int sgn(T num) { return (num > T(0)) - (num < T(0)); }
-
-// input globals
-float input_check_interval = 0.001f;
-float last_time = 0;
-float delta_time = 0;
-bool input[512];
-
-bool pressed(int code)
-{
-    return input[code];
-}
 
 // glm
 #include <glm.hpp>
@@ -32,40 +17,13 @@ bool pressed(int code)
 #include <string>
 
 #include "shaders/shaders.cpp"
+#include "glstuff.cpp"
 #include "camera.cpp"
-
 
 
 static void error_callback(int error, const char* description)
 {
     fputs(description, stderr);
-}
-
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GL_TRUE);
-
-    if (key == GLFW_KEY_W)
-        input[GLFW_KEY_W] = action;
-    if (key == GLFW_KEY_S)
-        input[GLFW_KEY_S] = action;
-    if (key == GLFW_KEY_A)
-        input[GLFW_KEY_A] = action;
-    if (key == GLFW_KEY_D)
-        input[GLFW_KEY_D] = action;
-    if (key == GLFW_KEY_D)
-        input[GLFW_KEY_D] = action;
-
-    if (key == GLFW_KEY_UP)
-        input[GLFW_KEY_UP] = action;
-    if (key == GLFW_KEY_DOWN)
-        input[GLFW_KEY_DOWN] = action;
-    if (key == GLFW_KEY_LEFT)
-        input[GLFW_KEY_LEFT] = action;
-    if (key == GLFW_KEY_RIGHT)
-        input[GLFW_KEY_RIGHT] = action;
-
 }
 
 int main(void)
@@ -90,8 +48,15 @@ int main(void)
     }
     glfwMakeContextCurrent(window);
 
-    // set callback function
+    // set callback functions
     glfwSetKeyCallback(window, key_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+
+    // set mouse
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPos(window, lastX, lastY);
+
 
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK)
@@ -102,9 +67,8 @@ int main(void)
     printf("gl_version - %s", glGetString(GL_VERSION));
 
     // viewport
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-    glViewport(0, 0, width, height);
+    glfwGetFramebufferSize(window, &window_w, &window_h);
+    glViewport(0, 0, window_w, window_h);
 
     // camera
     Camera camera;
@@ -217,7 +181,7 @@ int main(void)
     view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
     glm::mat4 projection(1.0f);
-    projection = glm::perspective<float>(PI/4, (float)width / height, 0.1f, 100.0f);
+    projection = glm::perspective<float>(PI/4, (float)window_w / window_h, 0.1f, 100.0f);
 
     // zbuffer anable
     glEnable(GL_DEPTH_TEST);
@@ -248,7 +212,7 @@ int main(void)
         camera.update();
         
         // calculate matrixes
-        projection = glm::perspective<float>(PI / 4, (float)width / height, 0.1f, 100.0f);
+        projection = camera.GetProjectionMatrix();
         view = camera.GetViewMatrix();
 
         // draw
@@ -286,7 +250,7 @@ int main(void)
         delta_time =  now - last_time;
         last_time = now;
 
-        std::cout << delta_time << '\n';
+        //std::cout << delta_time << '\n';
     }
     
     // clear the space

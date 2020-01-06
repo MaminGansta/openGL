@@ -28,8 +28,6 @@ public:
 
     void update(float delta_time)
     {
-        Pitch = fabs(Pitch) > PI / 2 - 0.01 ? sgn(Pitch) * PI / 2 - 0.01 : Pitch;
-
         glm::vec3 front;
         front.x = cosf(Yaw) * cosf(Pitch);
         front.y = sinf(Pitch);
@@ -56,9 +54,9 @@ public:
             speed_y = fabs(speed_y) < 0.01f ? speed_y = 0 : speed_y - sgn(speed_y) * speed_delta;
 
         if (pressed(GLFW_KEY_UP))
-            Pitch += 2 * delta_time;
+            Pitch += Pitch > PI / 2 - 0.1f ? 0 :  2 * delta_time;
         if (pressed(GLFW_KEY_DOWN))
-            Pitch -= 2 * delta_time;
+            Pitch -= Pitch < -PI / 2 + 0.1f ?  0 : 2 * delta_time;
         if (pressed(GLFW_KEY_LEFT))
             Yaw -= 3 * delta_time;
         if (pressed(GLFW_KEY_RIGHT))

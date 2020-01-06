@@ -20,10 +20,55 @@ public:
     float Zoom = PI / 4;
 
 
-    // Returns the view matrix calculated using Eular Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix()
     {
         return glm::lookAt(Position, Position + Front, Up);
+    }
+
+    glm::mat4 GetProjectionMatrix()
+    {
+        return glm::perspective<float>(Zoom, (float)window_w / window_h, 0.1f, 100.0f);
+    }
+
+    void input_procces()
+    {
+        // speed x
+        if (pressed(GLFW_KEY_W))
+            speed_x = speed_x < MaxSpeed ? speed_x + speed_delta : MaxSpeed;
+        else if (pressed(GLFW_KEY_S))
+            speed_x = speed_x > -MaxSpeed ? speed_x - speed_delta : -MaxSpeed;
+        else
+            speed_x = fabs(speed_x) < 0.01f ? speed_x = 0 : speed_x - sgn(speed_x) * speed_delta;
+
+        // speed y
+        if (pressed(GLFW_KEY_D))
+            speed_y = speed_y < MaxSpeed ? speed_y + speed_delta : MaxSpeed;
+        else if (pressed(GLFW_KEY_A))
+            speed_y = speed_y > -MaxSpeed ? speed_y - speed_delta : -MaxSpeed;
+        else
+            speed_y = fabs(speed_y) < 0.01f ? speed_y = 0 : speed_y - sgn(speed_y) * speed_delta;
+
+        // view (keys)
+        if (pressed(GLFW_KEY_UP))
+            Pitch += 2 * delta_time;
+        if (pressed(GLFW_KEY_DOWN))
+            Pitch -= 2 * delta_time;
+        if (pressed(GLFW_KEY_LEFT))
+            Yaw -= 3 * delta_time;
+        if (pressed(GLFW_KEY_RIGHT))
+            Yaw += 3 * delta_time;
+
+        // view (mouse)
+        Yaw += mouse_offsetX();
+        Pitch += mouse_offsetY();
+
+        // fov (mouse)
+        float temp = fov_offset() * 0.05f;
+        if (temp < 0)
+            Zoom = Zoom + temp < 0.01f ? Zoom : Zoom + temp;
+        else
+            Zoom = Zoom + temp > PI / 4 ? Zoom : Zoom + temp;
+
     }
 
     void update()
@@ -36,43 +81,15 @@ public:
         front.z = sinf(Yaw) * cosf(Pitch);
         Front = glm::normalize(front);
         // Also re-calculate the Right and Up vector
-        Right = glm::normalize(glm::cross(Front, WorldUp));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+        Right = glm::normalize(glm::cross(Front, WorldUp));
         Up = glm::normalize(glm::cross(Right, Front));
 
-        // process movement
-        if (pressed(GLFW_KEY_W))
-            speed_x = speed_x < MaxSpeed ? speed_x + speed_delta : MaxSpeed;
-        else if (pressed(GLFW_KEY_S))
-            speed_x = speed_x > -MaxSpeed ? speed_x - speed_delta : -MaxSpeed;
-        else
-            speed_x = fabs(speed_x) < 0.01f ? speed_x = 0 : speed_x - sgn(speed_x) * speed_delta;
-
-        // process movement
-        if (pressed(GLFW_KEY_D))
-            speed_y = speed_y < MaxSpeed ? speed_y + speed_delta : MaxSpeed;
-        else if (pressed(GLFW_KEY_A))
-            speed_y = speed_y > -MaxSpeed ? speed_y - speed_delta : -MaxSpeed;
-        else
-            speed_y = fabs(speed_y) < 0.01f ? speed_y = 0 : speed_y - sgn(speed_y) * speed_delta;
-
-        if (pressed(GLFW_KEY_UP))
-            Pitch += 2 * delta_time;
-        if (pressed(GLFW_KEY_DOWN))
-            Pitch -= 2 * delta_time;
-        if (pressed(GLFW_KEY_LEFT))
-            Yaw -= 3 * delta_time;
-        if (pressed(GLFW_KEY_RIGHT))
-            Yaw += 3 * delta_time;
-
-        // std::cout << Pitch << ' ' << Yaw << '\n';
+        // process input
+        input_procces();
 
          // movement
         Position += Front * speed_x * delta_time;
         Position += Right * speed_y * delta_time;
-
-        // FOV
-        Zoom = Zoom < 1.0f ? 1.0f : Zoom;
-        Zoom = Zoom > PI / 4 ? PI / 4 : Zoom;
     }
 
 };
