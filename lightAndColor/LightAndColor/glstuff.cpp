@@ -41,12 +41,14 @@ static bool GLLogCall(const char* function, const char* file, int line)
 
 
 
+// window size
+int window_h, window_w;
 
 // time
 float last_time = 0;
 float delta_time = 0;
 
-// globals
+// input
 char input[512];
 
 float lastX = 400, lastY = 300;
@@ -54,7 +56,6 @@ float MoffsetX = 0, MoffsetY = 0;
 float Mfov_offset = 0;
 float sensetivity = 0.004f;
 
-int window_h, window_w;
 
 bool pressed(int code)
 {
