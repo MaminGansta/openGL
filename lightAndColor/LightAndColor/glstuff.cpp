@@ -22,12 +22,10 @@ int sgn(T num) { return (num > T(0)) - (num < T(0)); }
     func;\
     ASSERT(GLLogCall(#func, __FILE__, __LINE__))
 
-
 static void GLClearError()
 {
     while (glGetError() != GL_NO_ERROR);
 }
-
 static bool GLLogCall(const char* function, const char* file, int line)
 {
     while (GLenum error = glGetError())

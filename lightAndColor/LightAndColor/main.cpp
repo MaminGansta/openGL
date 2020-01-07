@@ -22,7 +22,7 @@
 #include "shaders/shaders.cpp"
 #include "camera.cpp"
 #include "buffersAbstraction.cpp"
-#include "textures.cpp"
+#include "texture.cpp"
 
 
 static void error_callback(int error, const char* description)
@@ -76,7 +76,10 @@ int main(void)
     Camera camera;
 
     // textures (deffuse)
-    Texture box_deff("container2.png");
+    Texture box_deff("container_diff.png");
+    if (box_deff.invalid) return 1;
+    Texture box_spec("container_spec.png");
+    if (box_spec.invalid) return 1;
 
 
     // preapare shaders
@@ -155,21 +158,17 @@ int main(void)
     glm::vec3 cube_pos(0.0f, -1.0f, -4.5f);
 
     // uniforms
-    
     // cube shader's uniforms
     // fragment light structure
-    glm::vec3 diffuseColor = glm::vec3(1.0f, 1.0f, 1.0f) * glm::vec3(0.5f); // decrease the influence
-    glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
+    glm::vec3(0.5f, 0.5f, 0.5f); 
+    glm::vec3(0.2f, 0.2f, 0.2f);
 
-    cube_shader.setUni3f("light.ambient", ambientColor);
-    cube_shader.setUni3f("light.diffuse", diffuseColor);
+    cube_shader.setUni3f("light.ambient", glm::vec3(0.2f));
+    cube_shader.setUni3f("light.diffuse", glm::vec3(0.4f));
     cube_shader.setUni3f("light.specular", glm::vec3(1.0f));
     
     // fragment material structure
-    cube_shader.setUni3f("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
-    cube_shader.setUni3f("material.diffuse", glm::vec3(1.0f, 0.5f, 0.31f));
-    cube_shader.setUni3f("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
-    cube_shader.setUni1f("material.shininess", 32.0f);
+    cube_shader.setUni1f("material.shininess", 64.0f);
 
     // some matrix staff
     glm::mat4 identity(1.0f);
@@ -222,7 +221,8 @@ int main(void)
         // cube ------------------------------------------
         cube_shader.use();
         // bind the texture
-        box_deff.bind();
+        box_deff.bind(cube_shader, 0);
+        box_spec.bind(cube_shader, 1);
         // set position
         model = glm::translate(identity, cube_pos);
 
