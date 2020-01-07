@@ -255,6 +255,7 @@ int main(void)
         cube_shader.setUni3f("light.position", camera.Position);
         cube_shader.setUni3f("light.direction", camera.Front);
         cube_shader.setUni1f("light.cutOff", glm::cos(glm::radians(12.5f)));
+        cube_shader.setUni1f("light.outerCutOff", glm::cos(glm::radians(17.5f)));
 
         cubeVA.bind();
         for (int i = 0; i < 10; i++)
