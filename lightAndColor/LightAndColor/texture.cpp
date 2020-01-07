@@ -25,9 +25,9 @@ struct Texture
         glcall(glBindTexture(GL_TEXTURE_2D, 0));
     }
 
-    void bind(Shader& shader, uint32_t slot)
+    void bind(Shader& shader, const char* name, uint32_t slot)
     {
-        shader.setUni1i("material.specular", slot);
+        shader.setUni1i(name, slot);
         glcall(glActiveTexture(GL_TEXTURE0 + slot));
         glcall(glBindTexture(GL_TEXTURE_2D, id));
     }

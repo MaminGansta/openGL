@@ -80,6 +80,8 @@ int main(void)
     if (box_deff.invalid) return 1;
     Texture box_spec("container_spec.png");
     if (box_spec.invalid) return 1;
+    Texture emission("matrix.jpg");
+    if (emission.invalid) return 1;
 
 
     // preapare shaders
@@ -221,8 +223,9 @@ int main(void)
         // cube ------------------------------------------
         cube_shader.use();
         // bind the texture
-        box_deff.bind(cube_shader, 0);
-        box_spec.bind(cube_shader, 1);
+        box_deff.bind(cube_shader, "material.diffuse", 0);
+        box_spec.bind(cube_shader, "material.specular", 1);
+        emission.bind(cube_shader, "material.emission", 2);
         // set position
         model = glm::translate(identity, cube_pos);
 
