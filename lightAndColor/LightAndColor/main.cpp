@@ -188,7 +188,7 @@ int main(void)
     cube_shader.setUni1f("light.quadratic", 0.032f);
 
     // fragment material structure
-    cube_shader.setUni1f("material.shininess", 64.0f);
+    cube_shader.setUni1f("material.shininess", 16.0f);
 
     // some matrix staff
     glm::mat4 identity(1.0f);
@@ -247,9 +247,14 @@ int main(void)
         // set uniform params
         cube_shader.setUniMat4("view", view);
         cube_shader.setUniMat4("projection", projection);
-        //cube_shader.setUni3f("light.direction", light_dir);
-        cube_shader.setUni3f("light.position", lightPos);
+        // small lighter
+        //cube_shader.setUni3f("light.position", lightPos);
+        //cube_shader.setUni3f("viewPos", camera.Position);
+        // flash light
         cube_shader.setUni3f("viewPos", camera.Position);
+        cube_shader.setUni3f("light.position", camera.Position);
+        cube_shader.setUni3f("light.direction", camera.Front);
+        cube_shader.setUni1f("light.cutOff", glm::cos(glm::radians(12.5f)));
 
         cubeVA.bind();
         for (int i = 0; i < 10; i++)
