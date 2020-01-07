@@ -170,7 +170,7 @@ int main(void)
 
     // cube and lighter position 
     glm::vec3 lightPos(2.5f, 0.0f, -6.0f);
-    glm::vec3 cube_pos(0.0f, -1.0f, -4.5f);
+    glm::vec3 cube_pos(0.0f, 0.0f, -3.5f);
     glm::vec3 light_dir(-0.2f, -1.0f, -0.3f); 
 
     // uniforms
@@ -180,9 +180,13 @@ int main(void)
     glm::vec3(0.2f, 0.2f, 0.2f);
 
     cube_shader.setUni3f("light.ambient", glm::vec3(0.2f));
-    cube_shader.setUni3f("light.diffuse", glm::vec3(0.4f));
+    cube_shader.setUni3f("light.diffuse", glm::vec3(0.6f));
     cube_shader.setUni3f("light.specular", glm::vec3(1.0f));
-    
+    // light const's
+    cube_shader.setUni1f("light.constant", 1.0f);
+    cube_shader.setUni1f("light.linear", 0.09f);
+    cube_shader.setUni1f("light.quadratic", 0.032f);
+
     // fragment material structure
     cube_shader.setUni1f("material.shininess", 64.0f);
 
@@ -209,13 +213,32 @@ int main(void)
         camera.update();
         view = camera.GetViewMatrix();
 
+        // move the lighter
+        //float radius = 3.0f;
+        //lightPos.x = cube_pos.x + sinf(now) * radius;
+        //lightPos.z = cube_pos.z + cosf(now) * radius;
 
         // clear screen
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // lighter ---------------------------------------
+        light_shader.use();
+        // lighter calculation
+        model = glm::translate(identity, lightPos);
+        model = glm::scale(model, glm::vec3(0.2f));
+
+        // set uniform params
+        light_shader.setUniMat4("model", model);
+        light_shader.setUniMat4("view", view);
+        light_shader.setUniMat4("projection", projection);
+
+        // draw lighter
+        lighterVA.bind();
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
         
-        // cubes ------------------------------------------
+        // cube ------------------------------------------
         cube_shader.use();
         // bind the texture
         box_deff.bind(cube_shader, "material.diffuse", 0);
@@ -223,8 +246,10 @@ int main(void)
         //emission.bind(cube_shader, "material.emission", 2);
         // set uniform params
         cube_shader.setUniMat4("view", view);
-        cube_shader.setUniMat4("projection", projection);// draw cube
-        cube_shader.setUni3f("light.direction", light_dir);
+        cube_shader.setUniMat4("projection", projection);
+        //cube_shader.setUni3f("light.direction", light_dir);
+        cube_shader.setUni3f("light.position", lightPos);
+        cube_shader.setUni3f("viewPos", camera.Position);
 
         cubeVA.bind();
         for (int i = 0; i < 10; i++)
