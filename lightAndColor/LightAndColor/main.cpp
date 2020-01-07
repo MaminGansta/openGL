@@ -138,6 +138,19 @@ int main(void)
         -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
     };
 
+    glm::vec3 cubePositions[] = {
+        glm::vec3(0.0f,  0.0f,  0.0f),
+        glm::vec3(2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3(1.3f, -2.0f, -2.5f),
+        glm::vec3(1.5f,  2.0f, -2.5f),
+        glm::vec3(1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
+
     VertexBuffer cubeBuffer(vertices, sizeof(vertices), GL_STATIC_DRAW);
 
     VertexArray cubeVA;
@@ -158,6 +171,7 @@ int main(void)
     // cube and lighter position 
     glm::vec3 lightPos(2.5f, 0.0f, -6.0f);
     glm::vec3 cube_pos(0.0f, -1.0f, -4.5f);
+    glm::vec3 light_dir(-0.2f, -1.0f, -0.3f); 
 
     // uniforms
     // cube shader's uniforms
@@ -195,50 +209,32 @@ int main(void)
         camera.update();
         view = camera.GetViewMatrix();
 
-        // move the lighter
-        float radius = 3.0f;
-        lightPos.x = cube_pos.x + sinf(now) * radius;
-        lightPos.z = cube_pos.z + cosf(now) * radius;
 
         // clear screen
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // lighter ---------------------------------------
-        light_shader.use();
-        // lighter calculation
-        model = glm::translate(identity, lightPos);
-        model = glm::scale(model, glm::vec3(0.2f));
-
-        // set uniform params
-        light_shader.setUniMat4("model", model);
-        light_shader.setUniMat4("view", view);
-        light_shader.setUniMat4("projection", projection);
-
-        // draw lighter
-        lighterVA.bind();
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glBindVertexArray(0);
         
-        // cube ------------------------------------------
+        // cubes ------------------------------------------
         cube_shader.use();
         // bind the texture
         box_deff.bind(cube_shader, "material.diffuse", 0);
         box_spec.bind(cube_shader, "material.specular", 1);
-        emission.bind(cube_shader, "material.emission", 2);
-        // set position
-        model = glm::translate(identity, cube_pos);
-
+        //emission.bind(cube_shader, "material.emission", 2);
         // set uniform params
-        cube_shader.setUniMat4("model", model);
         cube_shader.setUniMat4("view", view);
         cube_shader.setUniMat4("projection", projection);// draw cube
-        cube_shader.setUni3f("lightPos", lightPos);
+        cube_shader.setUni3f("light.direction", light_dir);
 
         cubeVA.bind();
-        glcall(glDrawArrays(GL_TRIANGLES, 0, 36));
-        glBindVertexArray(0);
-
+        for (int i = 0; i < 10; i++)
+        {
+            model = glm::translate(identity, cubePositions[i]);
+            float angle = 20.0f * i;
+            model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
+            cube_shader.setUniMat4("model", model);
+            glcall(glDrawArrays(GL_TRIANGLES, 0, 36));
+        }
 
         glfwSwapBuffers(window);
     }

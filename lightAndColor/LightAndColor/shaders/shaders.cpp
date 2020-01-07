@@ -141,6 +141,10 @@ public:
     {
         glcall(glUniform3f(getUni(name), val.x, val.y, val.z));
     }
+    void setUni4f(const std::string& name, const glm::vec4& val)
+    {
+        glcall(glUniform4f(getUni(name), val.x, val.y, val.z, val.w));
+    }
 
     // float matrices
     void setUniMat3(const std::string& name, const glm::mat3& val)

@@ -6,10 +6,7 @@ layout(location = 2) in vec2 aTextCoord;
 
 out vec3 FragPos;
 out vec3 Normal;
-out vec3 LightPos;
 out vec2 TextCoord;
-
-uniform vec3 lightPos; // we now define the uniform in the vertex shader and pass the 'view space' lightpos to the fragment shader. lightPos is currently in world space.
 
 uniform mat4 model;
 uniform mat4 view;
@@ -18,9 +15,8 @@ uniform mat4 projection;
 void main()
 {
     gl_Position = projection * view * model * vec4(aPos, 1.0);
-    FragPos = vec3(view * model * vec4(aPos, 1.0));
+    FragPos = vec3(model * vec4(aPos, 1.0));
     Normal = mat3(transpose(inverse(view * model))) * aNormal;
-    LightPos = vec3(view * vec4(lightPos, 1.0)); // Transform world-space light position to view-space light position
     TextCoord = aTextCoord;
 }
 
@@ -31,11 +27,13 @@ out vec4 FragColor;
 struct Material {
     sampler2D diffuse;
     sampler2D specular;   
-    sampler2D emission;
+    //sampler2D emission;
     float shininess;
 }; 
 
 struct Light {
+    vec3 direction;
+    
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
@@ -56,7 +54,7 @@ void main()
   	
     // diffuse 
     vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(LightPos - FragPos);
+    vec3 lightDir = normalize(-light.direction);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = light.diffuse * diff * texture(material.diffuse, TextCoord).rgb;
     
@@ -67,8 +65,8 @@ void main()
     vec3 specular = light.specular * spec * texture(material.specular, TextCoord).rgb;
 
     // emission
-    vec3 emission = texture(material.emission, TextCoord).rgb;
+    //vec3 emission = texture(material.emission, TextCoord).rgb;
         
-    vec3 result = ambient + diffuse + specular + emission;
+    vec3 result = ambient + diffuse + specular;
     FragColor = vec4(result, 1.0);
 } 
