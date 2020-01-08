@@ -5,6 +5,8 @@ layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTexCoords;
 
 out vec2 TexCoords;
+out vec3 Normal;
+out vec3 frag_pos;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -12,8 +14,10 @@ uniform mat4 projection;
 
 void main()
 {
-    TexCoords = aTexCoords;
     gl_Position = projection * view * model * vec4(aPos, 1.0);
+    frag_pos = vec3(model * vec4(aPos, 1.0));
+    Normal = mat3(transpose(inverse(model))) * aNormal;
+    TexCoords = aTexCoords;
 }
 
 
@@ -22,10 +26,52 @@ void main()
 out vec4 FragColor;
 
 in vec2 TexCoords;
+in vec3 Normal;
+in vec3 frag_pos;
 
-uniform sampler2D texture_diffuse1;
+struct GlobalLight
+{
+    vec3 direction;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};
+
+uniform GlobalLight global_light;
+uniform vec3 view_pos;
+
+uniform sampler2D texture_diffuse0;
+uniform sampler2D texture_specular0;
+
+vec3 calGlobalLight(GlobalLight light, vec3 normal, vec3 viewDir);
 
 void main()
 {
-    FragColor = texture(texture_diffuse1, TexCoords);
+    vec3 normal = normalize(Normal);
+    vec3 view_dir = normalize(view_pos - frag_pos);
+    
+    vec3 result = calGlobalLight(global_light, normal, view_dir);
+
+
+    FragColor = vec4(result, 1.0);
+}
+
+
+vec3 calGlobalLight(GlobalLight light, vec3 normal, vec3 viewDir)
+{
+    vec3 lightDir = normalize(-light.direction);
+
+    // diffuse shading
+    float diff = max(dot(normal, lightDir), 0.0);
+
+    // specular shading
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16.0);
+
+    // combine results
+    vec3 ambient = light.ambient * vec3(texture(texture_diffuse0, TexCoords));
+    vec3 diffuse = light.diffuse * diff * vec3(texture(texture_diffuse0, TexCoords));
+    vec3 specular = light.specular * spec * vec3(texture(texture_specular0, TexCoords));
+    return (ambient + diffuse + specular);
 }

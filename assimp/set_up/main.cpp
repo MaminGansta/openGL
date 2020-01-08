@@ -65,7 +65,7 @@ int main(void)
 
     glfwSetCursorPos(window, lastX, lastY);
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    //glfwSwapInterval(1);
+    glfwSwapInterval(1);
 
     // set glew
     glewExperimental = GL_TRUE;
@@ -121,11 +121,7 @@ int main(void)
         camera.update();
         view = camera.GetViewMatrix();
 
-        // move the lighter
-        //float radius = 4.5f;
-        //lightPos.x = cube_pos.x + sinf(now) * radius;
-        //lightPos.z = cube_pos.z + cosf(now) * radius;
-
+        
         // clear screen
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -137,6 +133,14 @@ int main(void)
         model = glm::translate(identity, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
         crysis_shader.setUniMat4("model", model);
+
+        crysis_shader.setUni3f("view_pos", camera.Position);
+        crysis_shader.setUni3f("global_light.direction", glm::vec3(-0.2f, 0.1f, -0.5f));
+        crysis_shader.setUni3f("global_light.ambient", glm::vec3(0.2f));
+        crysis_shader.setUni3f("global_light.diffuse", glm::vec3(0.4f));
+        crysis_shader.setUni3f("global_light.specular",glm::vec3(0.8f));
+
+
         ourModel.Draw(crysis_shader);
 
 
