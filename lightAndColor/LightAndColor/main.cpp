@@ -75,7 +75,7 @@ int main(void)
     // camera
     Camera camera;
 
-    // textures (deffuse)
+    // textures
     Texture box_deff("container_diff.png");
     if (box_deff.invalid) return 1;
     Texture box_spec("container_spec.png");
@@ -168,27 +168,10 @@ int main(void)
     lighterLayout.push<float>(2);
     lighterVA.addBuffer(cubeBuffer, lighterLayout);
 
-    // cube and lighter position 
+    // cube and lighter position
     glm::vec3 lightPos(2.5f, 0.0f, -6.0f);
     glm::vec3 cube_pos(0.0f, 0.0f, -3.5f);
     glm::vec3 light_dir(-0.2f, -1.0f, -0.3f); 
-
-    // uniforms
-    // cube shader's uniforms
-    // fragment light structure
-    glm::vec3(0.5f, 0.5f, 0.5f); 
-    glm::vec3(0.2f, 0.2f, 0.2f);
-
-    cube_shader.setUni3f("light.ambient", glm::vec3(0.2f));
-    cube_shader.setUni3f("light.diffuse", glm::vec3(0.6f));
-    cube_shader.setUni3f("light.specular", glm::vec3(1.0f));
-    // light const's
-    cube_shader.setUni1f("light.constant", 1.0f);
-    cube_shader.setUni1f("light.linear", 0.09f);
-    cube_shader.setUni1f("light.quadratic", 0.032f);
-
-    // fragment material structure
-    cube_shader.setUni1f("material.shininess", 16.0f);
 
     // some matrix staff
     glm::mat4 identity(1.0f);
@@ -214,9 +197,9 @@ int main(void)
         view = camera.GetViewMatrix();
 
         // move the lighter
-        //float radius = 3.0f;
-        //lightPos.x = cube_pos.x + sinf(now) * radius;
-        //lightPos.z = cube_pos.z + cosf(now) * radius;
+        float radius = 4.5f;
+        lightPos.x = cube_pos.x + sinf(now) * radius;
+        lightPos.z = cube_pos.z + cosf(now) * radius;
 
         // clear screen
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -224,7 +207,7 @@ int main(void)
 
         // lighter ---------------------------------------
         light_shader.use();
-        // lighter calculation
+        // lighter world space calculation
         model = glm::translate(identity, lightPos);
         model = glm::scale(model, glm::vec3(0.2f));
 
@@ -240,23 +223,33 @@ int main(void)
         
         // cube ------------------------------------------
         cube_shader.use();
-        // bind the texture
-        box_deff.bind(cube_shader, "material.diffuse", 0);
-        box_spec.bind(cube_shader, "material.specular", 1);
-        //emission.bind(cube_shader, "material.emission", 2);
+        
         // set uniform params
         cube_shader.setUniMat4("view", view);
         cube_shader.setUniMat4("projection", projection);
-        // small lighter
-        //cube_shader.setUni3f("light.position", lightPos);
-        //cube_shader.setUni3f("viewPos", camera.Position);
-        // flash light
         cube_shader.setUni3f("viewPos", camera.Position);
-        cube_shader.setUni3f("light.position", camera.Position);
-        cube_shader.setUni3f("light.direction", camera.Front);
-        cube_shader.setUni1f("light.cutOff", glm::cos(glm::radians(12.5f)));
-        cube_shader.setUni1f("light.outerCutOff", glm::cos(glm::radians(17.5f)));
 
+        // material
+        box_deff.bind(cube_shader, "material.diffuse", 0);
+        box_spec.bind(cube_shader, "material.specular", 1);
+        cube_shader.setUni1f("material.shininess", 16.0f);
+
+        // dirLight
+        cube_shader.setUni3f("dirLight.direction", light_dir);
+        cube_shader.setUni3f("dirLight.ambient", glm::vec3(0.05f));
+        cube_shader.setUni3f("dirLight.diffuse", glm::vec3(0.2f));
+        cube_shader.setUni3f("dirLight.specular", glm::vec3(0.3f));
+
+        // pointLight
+        cube_shader.setUni3f("pointLights[0].position", lightPos);
+        cube_shader.setUni1f("pointLights[0].constant", 1.0f);
+        cube_shader.setUni1f("pointLights[0].linear", 0.09f);
+        cube_shader.setUni1f("pointLights[0].quadratic", 0.032f);
+        cube_shader.setUni3f("pointLights[0].ambient", glm::vec3(0.3f));
+        cube_shader.setUni3f("pointLights[0].diffuse", glm::vec3(0.7f));
+        cube_shader.setUni3f("pointLights[0].specular",glm::vec3(1.0f));
+
+        
         cubeVA.bind();
         for (int i = 0; i < 10; i++)
         {
