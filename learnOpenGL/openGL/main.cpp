@@ -1,7 +1,10 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <SOIL.h>
+//#include <SOIL.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 
 
 // glm
@@ -153,25 +156,38 @@ int main(void)
 
 
     // load image
-    int img_width, img_height;
-    unsigned char* image = SOIL_load_image("container.jpg", &img_width, &img_height, 0, SOIL_LOAD_RGB);
-    if (image == NULL || img_height == 0)
-    {
-        printf("image failled");
-        return 1;
-    }
+	GLuint texture;
+	int width, height, chanels;
+	//unsigned char* image = SOIL_load_image(filename, &width, &height, 0, SOIL_LOAD_RGB);
 
-    // texture generation
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+	glGenTextures(1, &texture);
+	uint8_t* image = stbi_load("container.jpg", &width, &height, &chanels, 0);
+	if (image == NULL || height == 0)
+	{
+		printf("image failled : %s", "container.jpg");
+		return 1;
+	}
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img_width, img_height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-    glGenerateMipmap(GL_TEXTURE_2D);
-  
-    // free data
-    SOIL_free_image_data(image);
-    glBindTexture(GL_TEXTURE_2D, 0);
+	GLenum format;
+	if (chanels == 1)
+		format = GL_RED;
+	else if (chanels == 3)
+		format = GL_RGB;
+	else if (chanels == 4)
+		format = GL_RGBA;
+
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, image);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// free data
+	//glcall(SOIL_free_image_data(image));
+	stbi_image_free(image);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
     // glm stuff
     glm::mat4 identity(1.0f);

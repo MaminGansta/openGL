@@ -1,7 +1,7 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <SOIL.h>
+//#include <SOIL.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
