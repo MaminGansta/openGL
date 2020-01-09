@@ -17,25 +17,29 @@ int sgn(T num) { return (num > T(0)) - (num < T(0)); }
 
 
 // error handler
-#define ASSERT(x) if (!(x)) __debugbreak();
-#define glcall(func) GLClearError();\
-    func;\
-    ASSERT(GLLogCall(#func, __FILE__, __LINE__))
-
-static void GLClearError()
-{
-    while (glGetError() != GL_NO_ERROR);
-}
-static bool GLLogCall(const char* function, const char* file, int line)
-{
-    while (GLenum error = glGetError())
+#if _DEBUG
+    #define ASSERT(x) if (!(x)) __debugbreak();
+    #define glcall(func) GLClearError();\
+        func;\
+        ASSERT(GLLogCall(#func, __FILE__, __LINE__))
+    
+    static void GLClearError()
     {
-        std::cout << "[openGL Error] >" << error << '\n'
-            << file << ':' << line << '\n';
-        return false;
+        while (glGetError() != GL_NO_ERROR);
     }
-    return true;
-}
+    static bool GLLogCall(const char* function, const char* file, int line)
+    {
+        while (GLenum error = glGetError())
+        {
+            std::cout << "[openGL Error] >" << error << '\n'
+                << file << ':' << line << '\n';
+            return false;
+        }
+        return true;
+    }
+#else
+    #define glcall(func) (func);
+#endif
 
 
 

@@ -18,7 +18,7 @@ public:
     }
 
     // draws the model, and thus all its meshes
-    void Draw(Shader shader)
+    void Draw(Shader& shader)
     {
         for (unsigned int i = 0; i < meshes.size(); i++)
             meshes[i].Draw(shader);
@@ -153,7 +153,7 @@ private:
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet.
     // the required info is returned as a Texture struct.
-    void loadMaterialTextures(std::vector<Texture>& textures, aiMaterial* mat, aiTextureType type, TextureType texture_type)
+    void loadMaterialTextures(std::vector<Texture>& textures, aiMaterial* mat, aiTextureType const& type, TextureType const& texture_type)
     {
         for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
         {
@@ -186,7 +186,7 @@ private:
 
 unsigned int TextureFromFile(const char* path, const std::string& directory)
 {
-    std::string filename = std::string(path);
+    std::string filename(path);
     filename = directory + '/' + filename;
 
     unsigned int textureID;
