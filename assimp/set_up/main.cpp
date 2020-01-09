@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -102,8 +103,9 @@ int main(void)
 
 
     // model
-    Model ourModel("models/crysis/nanosuit.obj");
+    Model crysis("models/crysis/nanosuit.obj");
 
+    Model ourModel("models/plane/scene.gltf");
 
     // zbuffer anable
     glEnable(GL_DEPTH_TEST);
@@ -131,17 +133,23 @@ int main(void)
 
         // render the loaded model
         model = glm::translate(identity, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
+        model = glm::scale(model, glm::vec3(0.01f));	// it's a bit too big for our scene, so scale it down
         crysis_shader.setUniMat4("model", model);
 
         crysis_shader.setUni3f("view_pos", camera.Position);
         crysis_shader.setUni3f("global_light.direction", glm::vec3(-0.2f, 0.1f, -0.5f));
-        crysis_shader.setUni3f("global_light.ambient", glm::vec3(0.2f));
-        crysis_shader.setUni3f("global_light.diffuse", glm::vec3(0.4f));
-        crysis_shader.setUni3f("global_light.specular",glm::vec3(0.8f));
-
+        crysis_shader.setUni3f("global_light.ambient", glm::vec3(0.3f));
+        crysis_shader.setUni3f("global_light.diffuse", glm::vec3(0.5f));
+        crysis_shader.setUni3f("global_light.specular", glm::vec3(0.8f));
 
         ourModel.Draw(crysis_shader);
+
+
+        model = glm::translate(identity, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(0.4f));	// it's a bit too big for our scene, so scale it down
+        crysis_shader.setUniMat4("model", model);
+
+        crysis.Draw(crysis_shader);
 
 
         glfwSwapBuffers(window);

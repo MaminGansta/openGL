@@ -12,9 +12,13 @@ struct Vertex {
     glm::vec3 Bitangent;
 };
 
+enum TextureType { DIFFUSE, SPECULAR, NORMAL, HEIGHT};
+
+const char * const texture_type_names[] = { "texture_diffuse", "texture_specular", "texture_normal", "texture_height" };
+
 struct Texture {
     unsigned int id;
-    std::string type;
+    TextureType type;
     std::string path;
 };
 
@@ -51,19 +55,19 @@ public:
             glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
             // retrieve texture number (the N in diffuse_textureN)
             std::string number;
-            std::string name = textures[i].type;
-            if (name == "texture_diffuse")
+            TextureType type = textures[i].type;
+            if (type == DIFFUSE)
                 number = std::to_string(diffuseNr++);
-            else if (name == "texture_specular")
-                number = std::to_string(specularNr++); // transfer unsigned int to stream
-            else if (name == "texture_normal")
-                number = std::to_string(normalNr++); // transfer unsigned int to stream
-            else if (name == "texture_height")
-                number = std::to_string(heightNr++); // transfer unsigned int to stream
+            else if (type == SPECULAR)
+                number = std::to_string(specularNr++); // transfer unsigned int to string
+            else if (type == NORMAL)
+                number = std::to_string(normalNr++); // transfer unsigned int to string
+            else if (type == HEIGHT)
+                number = std::to_string(heightNr++); // transfer unsigned int to string
 
             // now set the sampler to the correct texture unit
             //glUniform1i(glGetUniformLocation(shader.id, (name + number).c_str()), i);
-            shader.setUni1i((name + number).c_str(), i);
+            shader.setUni1i((texture_type_names[type] + number).c_str(), i);
             // and finally bind the texture
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
         }

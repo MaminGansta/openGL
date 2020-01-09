@@ -41,8 +41,12 @@ private:
         // retrieve the directory path of the filepath
         directory = path.substr(0, path.find_last_of('/'));
 
+        // save some time
+        meshes.reserve(10);
         // process ASSIMP's root node recursively
         processNode(scene->mRootNode, scene);
+
+        //std::cout << meshes.size() << '\n';
     }
 
     // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
@@ -70,6 +74,10 @@ private:
         std::vector<Vertex> vertices;
         std::vector<unsigned int> indices;
         std::vector<Texture> textures;
+
+        vertices.reserve(1000);
+        indices.reserve(1000);
+        textures.reserve(3);
 
         // Walk through each of the mesh's vertices
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -110,6 +118,7 @@ private:
             vertex.Bitangent = vector;
             vertices.push_back(vertex);
         }
+
         // now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
         for (unsigned int i = 0; i < mesh->mNumFaces; i++)
         {
@@ -118,8 +127,10 @@ private:
             for (unsigned int j = 0; j < face.mNumIndices; j++)
                 indices.push_back(face.mIndices[j]);
         }
+
         // process materials
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
         // we assume a convention for sampler names in the shaders. Each diffuse texture should be named
         // as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER. 
         // Same applies to other texture as the following list summarizes:
@@ -128,17 +139,13 @@ private:
         // normal: texture_normalN
 
         // 1. diffuse maps
-        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+        loadMaterialTextures(textures, material, aiTextureType_DIFFUSE, DIFFUSE); // "texture_diffuse");
         // 2. specular maps
-        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+        loadMaterialTextures(textures, material, aiTextureType_SPECULAR, SPECULAR);  // "texture_specular");
         // 3. normal maps
-        std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
-        textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+        loadMaterialTextures(textures, material, aiTextureType_HEIGHT, NORMAL);//"texture_normal");
         // 4. height maps
-        std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
-        textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+        loadMaterialTextures(textures, material, aiTextureType_AMBIENT, HEIGHT);//"texture_height");
 
         // return a mesh object created from the extracted mesh data
         return Mesh(vertices, indices, textures);
@@ -146,9 +153,8 @@ private:
 
     // checks all material textures of a given type and loads the textures if they're not loaded yet.
     // the required info is returned as a Texture struct.
-    std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
+    void loadMaterialTextures(std::vector<Texture>& textures, aiMaterial* mat, aiTextureType type, TextureType texture_type)
     {
-        std::vector<Texture> textures;
         for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
         {
             aiString str;
@@ -168,13 +174,12 @@ private:
             {   // if texture hasn't been loaded already, load it
                 Texture texture;
                 texture.id = TextureFromFile(str.C_Str(), this->directory);
-                texture.type = typeName;
+                texture.type = texture_type;
                 texture.path = str.C_Str();
                 textures.push_back(texture);
                 textures_loaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecesery load duplicate textures.
             }
         }
-        return textures;
     }
 };
 
