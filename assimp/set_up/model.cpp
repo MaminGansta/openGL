@@ -45,8 +45,6 @@ private:
         meshes.reserve(10);
         // process ASSIMP's root node recursively
         processNode(scene->mRootNode, scene);
-
-        //std::cout << meshes.size() << '\n';
     }
 
     // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
@@ -75,9 +73,9 @@ private:
         std::vector<unsigned int> indices;
         std::vector<Texture> textures;
 
-        vertices.reserve(1000);
-        indices.reserve(1000);
-        textures.reserve(3);
+        vertices.reserve(mesh->mNumVertices);
+        indices.reserve(mesh->mNumFaces);
+        textures.reserve(5);
 
         // Walk through each of the mesh's vertices
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)

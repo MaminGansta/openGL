@@ -14,8 +14,6 @@ struct Vertex {
 
 enum TextureType { DIFFUSE, SPECULAR, NORMAL, HEIGHT};
 
-const char * const texture_type_names[] = { "texture_diffuse", "texture_specular", "texture_normal", "texture_height" };
-
 struct Texture {
     unsigned int id;
     TextureType type;
@@ -66,7 +64,7 @@ public:
                 number = heightNr++; // transfer unsigned int to string
 
             // now set the sampler to the correct texture unit
-            //glUniform1i(glGetUniformLocation(shader.id, (name + number).c_str()), i);
+            const char* const texture_type_names[] = { "texture_diffuse", "texture_specular", "texture_normal", "texture_height" };
             shader.setUni1i(texture_type_names[type] + std::to_string(number), i);
             // and finally bind the texture
             glBindTexture(GL_TEXTURE_2D, textures[i].id);

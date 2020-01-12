@@ -104,10 +104,9 @@ private:
             return uniforms[name];
 
         int res = glGetUniformLocation(id, name.c_str());
-#if _DEBUG
         if (res == -1)
             std::cout << "no such uniform: " << name << '\n';
-#endif
+
         uniforms[name] = res;
         return res;
     }

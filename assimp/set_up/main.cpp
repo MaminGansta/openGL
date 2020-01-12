@@ -51,7 +51,7 @@ int main(void)
     // set errorr callback
     glfwSetErrorCallback(error_callback);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "light", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "assimp", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
