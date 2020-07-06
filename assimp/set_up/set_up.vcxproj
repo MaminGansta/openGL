@@ -89,6 +89,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\dependencies\GLEW\include;$(SolutionDir)..\dependencies\GLFW\include;$(SolutionDir)..\dependencies\glm;$(SolutionDir)..\dependencies\SOIL\include;$(SolutionDir)..\dependencies\assimp\include;$(SolutionDir)..\dependencies\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -104,6 +105,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\dependencies\GLEW\include;$(SolutionDir)..\dependencies\GLFW\include;$(SolutionDir)..\dependencies\glm;$(SolutionDir)..\dependencies\SOIL\include;$(SolutionDir)..\dependencies\assimp\include;$(SolutionDir)..\dependencies\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -121,6 +123,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\dependencies\GLEW\include;$(SolutionDir)..\dependencies\GLFW\include;$(SolutionDir)..\dependencies\glm;$(SolutionDir)..\dependencies\SOIL\include;$(SolutionDir)..\dependencies\assimp\include;$(SolutionDir)..\dependencies\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -140,6 +143,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)..\dependencies\GLEW\include;$(SolutionDir)..\dependencies\GLFW\include;$(SolutionDir)..\dependencies\glm;$(SolutionDir)..\dependencies\SOIL\include;$(SolutionDir)..\dependencies\assimp\include;$(SolutionDir)..\dependencies\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

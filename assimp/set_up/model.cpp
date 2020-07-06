@@ -42,7 +42,7 @@ private:
         directory = path.substr(0, path.find_last_of('/'));
 
         // save some time
-        meshes.reserve(10);
+        meshes.reserve(scene->mNumMeshes);
         // process ASSIMP's root node recursively
         processNode(scene->mRootNode, scene);
     }
