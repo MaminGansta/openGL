@@ -48,6 +48,9 @@
     <ClCompile Include="src\opengl\light\light.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\opengl\cubemap\cubemap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\opengl\camera\camera.h">
@@ -83,8 +86,12 @@
     <ClInclude Include="src\opengl\light\light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\opengl\cubemap\cubemap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\phong.glsl" />
+    <None Include="shaders\skybox.glsl" />
   </ItemGroup>
 </Project>
