@@ -10,7 +10,10 @@ int main(void)
     gl::Camera camera;
 
     // preapare shaders
-    gl::Shader crysis_shader("shaders/crysis.shader");
+    gl::Shader phong("shaders/phong.glsl");
+    if (phong.invalid) return 1;
+
+    gl::Shader crysis_shader("shaders/crysis.glsl");
     if (crysis_shader.invalid) return 1;
 
 
@@ -21,9 +24,9 @@ int main(void)
 
     // some matrix staff
     glm::mat4 identity(1.0f);
-    glm::mat4 projection = glm::perspective<float>(gl::PI / 4, (float)window.GetSize().x / window.GetSize().y, 0.1f, 100.0f);
     glm::mat4 model(1.0f);
     glm::mat4 view(1.0f);
+    glm::mat4 projection(1.0f);
 
 
     // model

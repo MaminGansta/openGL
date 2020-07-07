@@ -41,7 +41,7 @@ namespace gl
                 number = heightNr++; // transfer unsigned int to string
 
             // now set the sampler to the correct texture unit
-            const char* const texture_type_names[] = { "texture_diffuse", "texture_specular", "texture_normal", "texture_height" };
+            const char* const texture_type_names[] = { "material.diffuse", "material.specular", "material.normal", "material.height" };
             shader.setUni1i(texture_type_names[type] + std::to_string(number), i);
             // and finally bind the texture
             glBindTexture(GL_TEXTURE_2D, textures[i].id);

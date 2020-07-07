@@ -103,9 +103,9 @@ namespace gl
                 return uniforms[name];
 
             int res = glGetUniformLocation(id, name.c_str());
-            if (res == -1)
-                printf("no such uniform: %s\n", name.c_str());
 
+            if (res == -1)
+                printf_s("no such uniform: %s\n", name.c_str());
 
             uniforms[name] = res;
             return res;

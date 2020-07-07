@@ -38,11 +38,17 @@ struct GlobalLight
     vec3 specular;
 };
 
+struct Material
+{
+    sampler2D diffuse1;
+    sampler2D diffuse2;
+    sampler2D specular1;
+};
+
 uniform GlobalLight global_light;
 uniform vec3 view_pos;
 
-uniform sampler2D texture_diffuse1;
-uniform sampler2D texture_specular1;
+uniform Material material;
 
 vec3 calGlobalLight(GlobalLight light, vec3 normal, vec3 viewDir);
 
@@ -70,8 +76,8 @@ vec3 calGlobalLight(GlobalLight light, vec3 normal, vec3 viewDir)
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16.0);
 
     // combine results
-    vec3 ambient = light.ambient * vec3(texture(texture_diffuse1, TexCoords));
-    vec3 diffuse = light.diffuse * diff * vec3(texture(texture_diffuse1, TexCoords));
-    vec3 specular = light.specular * spec * vec3(texture(texture_specular1, TexCoords));
+    vec3 ambient = light.ambient * vec3(texture(material.diffuse1, TexCoords));
+    vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse1, TexCoords));
+    vec3 specular = light.specular * spec * vec3(texture(material.specular1, TexCoords));
     return (ambient + diffuse + specular);
 }
