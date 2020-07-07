@@ -34,6 +34,7 @@ namespace gl
         std::vector<unsigned int> indices;
         std::vector<Texture> textures;
         unsigned int VAO;
+        int shininess = 32;
 
         /*  Functions  */
         // constructor

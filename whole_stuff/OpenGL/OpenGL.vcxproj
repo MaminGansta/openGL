@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\opengl\light\light.cpp" />
     <ClCompile Include="src\opengl\camera\camera.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">pch.h</PrecompiledHeaderFile>
@@ -225,6 +226,7 @@
     <ClCompile Include="src\process_input\process_input.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\opengl\light\light.h" />
     <ClInclude Include="src\opengl\window\input.h" />
     <ClInclude Include="src\opengl\window\timer.h" />
     <ClInclude Include="src\process_input\process_input.h" />

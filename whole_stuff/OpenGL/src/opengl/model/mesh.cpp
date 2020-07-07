@@ -46,6 +46,7 @@ namespace gl
             // and finally bind the texture
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
         }
+        shader.setUni1i("material.shininess", shininess);
 
         // draw mesh
         glBindVertexArray(VAO);
