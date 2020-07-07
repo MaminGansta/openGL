@@ -102,6 +102,7 @@ int main(void)
     // zbuffer anable
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+    glDepthFunc(GL_LEQUAL);
 
     gl::Timer timer;
     while (window.isOpen())
@@ -121,6 +122,28 @@ int main(void)
         projection = camera.GetPprojectionMat(window.GetSize().x, window.GetSize().y);
 
 
+        // update lighters
+        phong.Use();
+        
+        gl::ApplyLightToShader(lighters, phong);
+
+        phong.setUni3f("viewPos", camera.m_Position);
+        phong.setUniMat4("projection", projection);
+        phong.setUniMat4("view", view);
+
+        // plane
+        model = glm::translate(identity, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
+        model = glm::scale(model, glm::vec3(0.01f));	// it's a bit too big for our scene, so scale it down
+        phong.setUniMat4("model", model);
+        ourModel.Draw(phong);
+
+        // nanosuit
+        model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
+        model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
+        phong.setUniMat4("model", model);
+        crysis.Draw(phong);
+
+        
         // draw skybox
         glDepthMask(GL_FALSE);
         skyboxShader.Use();
@@ -132,30 +155,6 @@ int main(void)
         glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.textureID);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glDepthMask(GL_TRUE);
-
-
-        // update lighters
-        phong.Use();
-
-        gl::ApplyLightToShader(lighters, phong);
-
-        phong.setUni3f("viewPos", camera.m_Position);
-        phong.setUniMat4("projection", projection);
-        phong.setUniMat4("view", view);
-
-        // render the loaded model
-        model = glm::translate(identity, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.01f));	// it's a bit too big for our scene, so scale it down
-        phong.setUniMat4("model", model);
-
-        ourModel.Draw(phong);
-
-        
-        model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
-        model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
-        phong.setUniMat4("model", model);
-
-        crysis.Draw(phong);
 
         window.SwapBuffer();
     }
