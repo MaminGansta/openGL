@@ -1,15 +1,11 @@
 
-#include "window.h"
+#include "input.h"
 
 namespace gl
 {
-
-    // time
-    float last_time = 0;
-    float delta_time = 0;
-
     // input
     char input[512];
+    char mouse_input[512];
 
     float lastX = 400, lastY = 300;
     float MoffsetX = 0, MoffsetY = 0;
@@ -26,6 +22,13 @@ namespace gl
     {
         return input[code] == 1;
     }
+
+
+    bool mouse_pressed(int code)
+    {
+        return mouse_input[code];
+    }
+
 
     float mouse_offsetX()
     {

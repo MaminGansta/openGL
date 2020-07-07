@@ -9,7 +9,7 @@ namespace gl
     {
         if (!glfwInit())
         {
-            printf("glfw init fail\n");
+            printf("GLFW INT FAIL\n");
             exit(EXIT_FAILURE);
         }
         return 0;
@@ -38,26 +38,12 @@ namespace gl
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
             glfwSetWindowShouldClose(window, GL_TRUE);
 
-        if (key == GLFW_KEY_W)
-            input[GLFW_KEY_W] = action;
-        if (key == GLFW_KEY_S)
-            input[GLFW_KEY_S] = action;
-        if (key == GLFW_KEY_A)
-            input[GLFW_KEY_A] = action;
-        if (key == GLFW_KEY_D)
-            input[GLFW_KEY_D] = action;
-        if (key == GLFW_KEY_D)
-            input[GLFW_KEY_D] = action;
+        input[key] = action;
+    }
 
-        if (key == GLFW_KEY_UP)
-            input[GLFW_KEY_UP] = action;
-        if (key == GLFW_KEY_DOWN)
-            input[GLFW_KEY_DOWN] = action;
-        if (key == GLFW_KEY_LEFT)
-            input[GLFW_KEY_LEFT] = action;
-        if (key == GLFW_KEY_RIGHT)
-            input[GLFW_KEY_RIGHT] = action;
-
+    void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+    {
+        mouse_input[button] = action;
     }
 
     void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -77,9 +63,14 @@ namespace gl
 
     void window_size_callback(GLFWwindow* window, int width, int height)
     {
-        glViewport(0, 0, width, height);
+        Window* pWindow = windows[window];
+        pWindow->Resize(width, height);
     }
 
+    void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+    {
+        glViewport(0, 0, width, height);
+    }
 
 	Window::Window(const char* name, int width, int height)
 	{
@@ -103,21 +94,21 @@ namespace gl
         // set callback functions
         glfwSetErrorCallback(error_callback);
         glfwSetKeyCallback(m_Window, key_callback);
+        glfwSetMouseButtonCallback(m_Window, mouse_button_callback);
         glfwSetCursorPosCallback(m_Window, mouse_callback);
         glfwSetScrollCallback(m_Window, scroll_callback);
         glfwSetWindowSizeCallback(m_Window, window_size_callback);
+        glfwSetFramebufferSizeCallback(m_Window, framebuffer_size_callback);
 
-
-        //glfwSetCursorPos(window, lastX, lastY);
-        //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwSetCursorPos(m_Window, lastX, lastY);
         glfwSwapInterval(1);
 
         // set glew
         static int glew = glew_init();
 
-        // veiwport
-        glViewport(0, 0, width, height);
-	}
+        // add window to map
+        windows[m_Window] = this;
+    }
 
     Window::~Window()
     {
@@ -144,6 +135,21 @@ namespace gl
     void Window::Resize(int width, int height)
     {
         glfwSetWindowSize(m_Window, width, height);
+    }
+
+    void Window::ResizeFrameBuffer()
+    {
+        int width, height;
+        glfwGetFramebufferSize(m_Window, &width, &height);
+        glViewport(0, 0, width, height);
+    }
+
+    void Window::CatchCursor(bool catch_flag)
+    {
+        if (catch_flag)
+            glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        else
+            glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 
 }

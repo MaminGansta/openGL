@@ -207,7 +207,6 @@
     </ClCompile>
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\opengl\window\input.cpp" />
-    <ClCompile Include="src\opengl\window\Source.cpp" />
     <ClCompile Include="src\opengl\window\window.h" />
     <ClCompile Include="src\opengl\window\window.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
@@ -218,9 +217,17 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</PrecompiledHeaderFile>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</PrecompiledHeaderFile>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="src\process_input\process_input.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\opengl\window\input.h" />
+    <ClInclude Include="src\opengl\window\timer.h" />
+    <ClInclude Include="src\process_input\process_input.h" />
     <ClInclude Include="src\opengl\camera\camera.h" />
     <ClInclude Include="src\opengl\gl_assert\gl_assert.h" />
     <ClInclude Include="src\opengl\gl_api.h" />

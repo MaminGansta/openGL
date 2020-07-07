@@ -6,20 +6,26 @@ enum class CameraMovement {
     FORWARD,
     BACKWARD,
     LEFT,
-    RIGHT
+    RIGHT,
+    NO_DIRECTION
 };
 
 
 namespace gl
 {
+    template <typename T>
+    inline int sgn(T num) { return (num > T(0)) - (num < T(0)); }
+
     const float PI = 3.14159265359f;
 
     // Default camera values
-    const static float YAW = 45.0f;
-    const static float PITCH = -45.0f;
-    const static float SPEED = 12.0f;
-    const static float SENSITIVTY = 50.0f;
-    const static float FOV = 45.0f;
+    const static float YAW = -PI / 2;
+    const static float PITCH = 0;
+    const static float MAX_SPEED = 10.0f;
+    const static float DELTA_SPEED = 0.5f;
+
+    const static float SENSITIVTY = 0.25f;
+    const static float FOV = PI / 4;
     
     struct Camera
     {
@@ -36,17 +42,19 @@ namespace gl
         float m_Pitch = 0;
 
         // Camera options
-        float m_MaxSpeed = 10.0f;
+        float m_MaxSpeed = MAX_SPEED;
         float m_SpeedX = 0;
         float m_SpeedY = 0;
-        float m_DeltaSpeed = 0.5f;
-        float m_MouseSensitivity = 0.25f;
-        float m_Fov = PI / 4.0f;
+        float m_DeltaSpeed = DELTA_SPEED;
+        float m_MouseSensitivity = SENSITIVTY;
+        float m_Fov = FOV;
+        float m_DeltaFov = 0.05f;
 
         // Last mouse position
         float m_MouseX = 0.5f;
         float m_MouseY = 0.5f;
 
+        bool m_NewFrame = true;
 
         // Constructor with vectors
         Camera(const glm::vec3& position = glm::vec3(0.0f, 0.0f, 0.0f),

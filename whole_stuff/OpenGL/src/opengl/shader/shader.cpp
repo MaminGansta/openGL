@@ -12,7 +12,7 @@ namespace gl
 
             if (!stream.is_open())
             {
-                printf("file %s not exist", filepath);
+                printf("file \"%s\" not exist\n", filepath);
                 return false;
             }
 
@@ -52,7 +52,7 @@ namespace gl
                 if (!success)
                 {
                     glGetShaderInfoLog(vertexShader, 512, NULL, info);
-                    printf("%s", info);
+                    printf("%s\n", info);
                     return false;
                 }
             }
@@ -69,7 +69,7 @@ namespace gl
                 if (!success)
                 {
                     glGetShaderInfoLog(fragmentShader, 512, NULL, info);
-                    printf("%s", info);
+                    printf("%s\n", info);
                     return false;
                 }
             }
@@ -86,7 +86,7 @@ namespace gl
                 if (!success)
                 {
                     glGetProgramInfoLog(id, 512, NULL, info);
-                    printf("%s", info);
+                    printf("%s\n", info);
                     return false;
                 }
             }
@@ -104,7 +104,7 @@ namespace gl
 
             int res = glGetUniformLocation(id, name.c_str());
             if (res == -1)
-                printf("no such uniform: %s\n", name);
+                printf("no such uniform: %s\n", name.c_str());
 
 
             uniforms[name] = res;

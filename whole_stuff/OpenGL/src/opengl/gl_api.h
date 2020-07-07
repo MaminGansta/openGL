@@ -1,5 +1,9 @@
 #pragma once
 
+#define GLEW_STATIC
+#include "GL/glew.h"
+
+#include "window/timer.h"
 #include "camera/camera.h"
 #include "model/model.h"
 #include "shader/shader.h"

@@ -1,6 +1,6 @@
 
 #include "opengl/gl_api.h"
-
+#include "process_input/process_input.h"
 
 int main(void)
 {
@@ -34,23 +34,22 @@ int main(void)
     // zbuffer anable
     glEnable(GL_DEPTH_TEST);
 
+    gl::Timer timer;
     while (window.isOpen())
     {
-        // time
-        float now = glfwGetTime();
-        gl::delta_time = now - gl::last_time;
-        gl::last_time = now;
-
+        timer.Update();
         glfwPollEvents();
 
         // process input 
-        camera.UpdateCameraVectors();
-        view = camera.GetLookatMat();
-        projection = camera.GetPprojectionMat(window.GetSize().x, window.GetSize().y);
+        ProcessCameraMovement(window, camera, timer.GetDeltaTime());
 
         // clear screen
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        
+        view = camera.GetLookatMat();
+        projection = camera.GetPprojectionMat(window.GetSize().x, window.GetSize().y);
 
         crysis_shader.setUniMat4("projection", projection);
         crysis_shader.setUniMat4("view", view);
@@ -78,7 +77,5 @@ int main(void)
         window.SwapBuffer();
     }
 
-    // clear the space
-    glfwTerminate();
     return 0;
 }

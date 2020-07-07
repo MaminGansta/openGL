@@ -2,28 +2,11 @@
 
 #include "glm.hpp"
 #include "GLFW/glfw3.h"
+#include "input.h"
+#include <unordered_map>
 
 namespace gl
 {
-    // time
-    extern float last_time;
-    extern float delta_time;
-
-    // input
-    extern char input[512];
-
-    extern float lastX, lastY;
-    extern float MoffsetX, MoffsetY;
-    extern float Mfov_offset;
-    extern float sensetivity;
-
-    bool pressed(int code);
-    bool clicked(int code);
-    float mouse_offsetX();
-    float mouse_offsetY();
-    float fov_offset();
-
-
 	struct Window
 	{
         GLFWwindow* m_Window;
@@ -32,6 +15,10 @@ namespace gl
         ~Window();
 
         void Resize(int width, int height);
+        void ResizeFrameBuffer();
+
+        void CatchCursor(bool flag);
+        
         bool isOpen();
 
         glm::ivec2 GetSize();
@@ -40,4 +27,5 @@ namespace gl
 
 	};
 
+    static std::unordered_map<GLFWwindow*, Window*> windows;
 }
