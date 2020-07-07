@@ -38,6 +38,7 @@ int main(void)
 
     // zbuffer anable
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 
     gl::Timer timer;
     while (window.isOpen())
@@ -63,12 +64,6 @@ int main(void)
         phong.setUni3f("viewPos", camera.m_Position);
         phong.setUniMat4("projection", projection);
         phong.setUniMat4("view", view);
-
-        //crysis_shader.setUni3f("global_light.direction", glm::vec3(-0.2f, 0.1f, -0.5f));
-        //crysis_shader.setUni3f("global_light.ambient", glm::vec3(0.3f));
-        //crysis_shader.setUni3f("global_light.diffuse", glm::vec3(0.5f));
-        //crysis_shader.setUni3f("global_light.specular", glm::vec3(0.8f));
-
 
         // render the loaded model
         model = glm::translate(identity, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
