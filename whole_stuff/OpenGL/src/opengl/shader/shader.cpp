@@ -5,9 +5,9 @@
 
 namespace gl
 {
-        bool Shader::parse_shaders(char const* filepath, std::string& vertex, std::string& fragment)
+        bool Shader::parse_shaders(char const* filepath, std::string& vertex, std::string& fragment, std::string& geometry)
         {
-            enum Type { NONE = -1, VERTEX = 0, FRAGMENT = 1 } type = NONE;
+            enum Type { NONE = -1, VERTEX = 0, FRAGMENT = 1, GEOMETRY = 2 } type = NONE;
             std::ifstream stream(filepath);
 
             if (!stream.is_open())
@@ -17,7 +17,7 @@ namespace gl
             }
 
             std::string line;
-            std::stringstream shaders[2];
+            std::stringstream shaders[3];
 
             while (std::getline(stream, line))
             {
@@ -27,6 +27,8 @@ namespace gl
                         type = VERTEX;
                     else if (line.find("fragment") != std::string::npos)
                         type = FRAGMENT;
+                    else if (line.find("geometry") != std::string::npos)
+                        type = GEOMETRY;
                 }
                 else
                     shaders[type] << line << '\n';
@@ -34,10 +36,11 @@ namespace gl
 
             vertex = shaders[VERTEX].str();
             fragment = shaders[FRAGMENT].str();
+            geometry = shaders[GEOMETRY].str();
             return true;
         }
 
-        bool Shader::compile_shaders(const std::string& vertexSource, const std::string& fragmentSource)
+        bool Shader::compile_shaders(const std::string& vertexSource, const std::string& fragmentSource, const std::string& geometry)
         {
             // compile shaders
             GLint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -47,12 +50,19 @@ namespace gl
             // check the complilation result
             {
                 GLint success;
-                GLchar info[512];
                 glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
                 if (!success)
                 {
-                    glGetShaderInfoLog(vertexShader, 512, NULL, info);
-                    printf("%s\n", info);
+                    GLint maxLength = 0;
+                    glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+                    // The maxLength includes the NULL character
+                    std::string log;
+                    log.resize(maxLength);
+                    glGetShaderInfoLog(vertexShader, maxLength, &maxLength, (GLchar*)log.data());
+                    glDeleteShader(vertexShader);
+                    
+                    printf("%s\n", log.c_str());
                     return false;
                 }
             }
@@ -64,19 +74,57 @@ namespace gl
             // agen check the result
             {
                 GLint success;
-                GLchar info[512];
                 glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
                 if (!success)
                 {
-                    glGetShaderInfoLog(fragmentShader, 512, NULL, info);
-                    printf("%s\n", info);
+                    GLint maxLength = 0;
+                    glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+                    // The maxLength includes the NULL character
+                    std::string log;
+                    log.resize(maxLength);
+                    glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, (GLchar*)log.data());
+                    glDeleteShader(fragmentShader);
+
+                    printf("%s\n", log.c_str());
                     return false;
                 }
             }
+            // geometry shader
+            GLint geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+            if (geometry.size())
+            {
+                const char* cgeometrySource = geometry.c_str();
+                glShaderSource(geometryShader, 1, &cgeometrySource, NULL);
+                glCompileShader(geometryShader);
+                // agen check the result
+                {
+                    GLint success;
+                    GLchar info[512];
+                    glGetShaderiv(geometryShader, GL_COMPILE_STATUS, &success);
+                    if (!success)
+                    {
+                        GLint maxLength = 0;
+                        glGetShaderiv(geometryShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+                        // The maxLength includes the NULL character
+                        std::string log;
+                        log.resize(maxLength);
+                        glGetShaderInfoLog(geometryShader, maxLength, &maxLength, (GLchar*)log.data());
+                        glDeleteShader(geometryShader);
+
+                        printf("%s\n", log.c_str());
+                        return false;
+                    }
+                }
+            }
+
             // Link shaders
             id = glCreateProgram();
             glAttachShader(id, vertexShader);
             glAttachShader(id, fragmentShader);
+            if (geometry.size())
+                glAttachShader(id, geometryShader);
             glLinkProgram(id);
             // And check the retult
             {
@@ -91,6 +139,7 @@ namespace gl
                 }
             }
             // delete both shaders
+            glDeleteShader(geometryShader);
             glDeleteShader(vertexShader);
             glDeleteShader(fragmentShader);
             return true;
@@ -114,9 +163,9 @@ namespace gl
 
         Shader::Shader(const char* filepath)
         {
-            std::string vertexSource, fragmentSource;
-            invalid = !parse_shaders(filepath, vertexSource, fragmentSource);
-            invalid = invalid ? true : !compile_shaders(vertexSource, fragmentSource);
+            std::string vertexSource, fragmentSource, geometry;
+            invalid = !parse_shaders(filepath, vertexSource, fragmentSource, geometry);
+            invalid = invalid ? true : !compile_shaders(vertexSource, fragmentSource, geometry);
         }
 
         void Shader::Use() { glUseProgram(id); }

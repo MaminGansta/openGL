@@ -15,8 +15,8 @@ namespace gl
         bool invalid = false;
 
     private:
-        bool parse_shaders(char const* filepath, std::string& vertex, std::string& fragment);
-        bool compile_shaders(const std::string& vertexSource, const std::string& fragmentSource);
+        bool parse_shaders(char const* filepath, std::string& vertex, std::string& fragment, std::string& geometry);
+        bool compile_shaders(const std::string& vertexSource, const std::string& fragmentSource, const std::string& geometry);
         int getUni(const std::string& name);
 
     public:

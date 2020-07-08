@@ -30,8 +30,8 @@ namespace gl
         float cutOff = glm::cos(glm::radians(12.5f));
         float outerCutOff = glm::cos(glm::radians(17.5f));
 
-        glm::vec3 ambient = glm::vec3(0.1f);
-        glm::vec3 diffuse = glm::vec3(0.5f);
+        glm::vec3 ambient = glm::vec3(0.2f);
+        glm::vec3 diffuse = glm::vec3(0.6f);
         glm::vec3 specular = glm::vec3(0.8f);
         int shininess = 32;
     };
