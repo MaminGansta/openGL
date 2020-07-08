@@ -16,6 +16,8 @@ int main(void)
     gl::Shader crysis_shader("shaders/crysis.glsl");
     if (crysis_shader.invalid) return 1;
 
+    gl::Shader show_normals("shaders/show_normals.glsl");
+    if (show_normals.invalid) return 1;
 
     // cube and lighter position
     glm::vec3 lightPos(2.5f, 0.0f, -6.0f);
@@ -142,6 +144,14 @@ int main(void)
         model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
         phong.setUniMat4("model", model);
         crysis.Draw(phong);
+
+
+        // draw normals
+        show_normals.setUniMat4("model", model);
+        show_normals.setUniMat4("projection", projection);
+        show_normals.setUniMat4("view", view);
+        
+        crysis.Draw(show_normals);
 
         
         // draw skybox

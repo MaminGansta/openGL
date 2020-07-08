@@ -242,6 +242,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\phong.glsl" />
+    <None Include="shaders\show_normals.glsl" />
     <None Include="shaders\skybox.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

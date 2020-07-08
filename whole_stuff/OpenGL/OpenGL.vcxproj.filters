@@ -93,5 +93,6 @@
   <ItemGroup>
     <None Include="shaders\phong.glsl" />
     <None Include="shaders\skybox.glsl" />
+    <None Include="shaders\show_normals.glsl" />
   </ItemGroup>
 </Project>

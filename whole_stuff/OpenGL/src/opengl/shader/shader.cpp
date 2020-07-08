@@ -30,6 +30,8 @@ namespace gl
                     else if (line.find("geometry") != std::string::npos)
                         type = GEOMETRY;
                 }
+                else if (type == NONE)
+                    continue;
                 else
                     shaders[type] << line << '\n';
             }
