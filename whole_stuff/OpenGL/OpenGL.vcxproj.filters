@@ -94,5 +94,6 @@
     <None Include="shaders\phong.glsl" />
     <None Include="shaders\skybox.glsl" />
     <None Include="shaders\show_normals.glsl" />
+    <None Include="shaders\blinn_phong.glsl" />
   </ItemGroup>
 </Project>

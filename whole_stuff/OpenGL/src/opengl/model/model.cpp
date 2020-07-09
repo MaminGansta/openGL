@@ -167,6 +167,9 @@ namespace gl
                 }
                 if (!skip)
                 {   // if texture hasn't been loaded already, load it
+                    
+                    //stbi_set_flip_vertically_on_load(type == NORMAL);
+
                     Texture texture;
                     texture.id = TextureFromFile(str.C_Str(), this->directory);
                     texture.type = texture_type;

@@ -91,8 +91,8 @@ namespace gl
         if (m_Pitch > PI / 2 -0.1f)
             m_Pitch = PI / 2 -0.1f;
 
-        if (m_Pitch < -PI / 2 - 0.1f)
-            m_Pitch = -PI / 2 - 0.1f;
+        if (m_Pitch < -PI / 2 + 0.1f)
+            m_Pitch = -PI / 2 + 0.1f;
 
         // Update Front, Right and Up Vectors using the updated Eular angles
         UpdateCameraVectors();
@@ -110,8 +110,8 @@ namespace gl
         if (m_Pitch > PI/2 - 0.1f)
             m_Pitch = PI/2 - 0.1f;
 
-        if (m_Pitch < -PI / 2 - 0.1f)
-            m_Pitch = -PI / 2 - 0.1f;
+        if (m_Pitch < -PI / 2 + 0.1f)
+            m_Pitch = -PI / 2 + 0.1f;
 
         // Update Front, Right and Up Vectors using the updated Eular angles
         UpdateCameraVectors();

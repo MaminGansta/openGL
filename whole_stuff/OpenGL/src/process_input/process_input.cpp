@@ -25,8 +25,8 @@ void ProcessCameraMovement(gl::Window& window, gl::Camera& camera, float deltaTi
     if (fabs(camera.m_SpeedY) > camera.m_MaxSpeed) camera.m_SpeedY = gl::sgn(camera.m_SpeedY) * camera.m_MaxSpeed;
 
     // move
-    camera.m_Position -= camera.m_Front * camera.m_SpeedX * deltaTime;
-    camera.m_Position -= camera.m_Right * camera.m_SpeedY * deltaTime;
+    camera.m_Position += camera.m_Front * camera.m_SpeedX * deltaTime;
+    camera.m_Position += camera.m_Right * camera.m_SpeedY * deltaTime;
 
     camera.UpdateCameraVectors();
 

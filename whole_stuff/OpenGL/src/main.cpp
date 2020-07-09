@@ -13,6 +13,9 @@ int main(void)
     gl::Shader phong("shaders/phong.glsl");
     if (phong.invalid) return 1;
 
+    gl::Shader blinn_phong("shaders/blinn_phong.glsl");
+    if (blinn_phong.invalid) return 1;
+
     gl::Shader crysis_shader("shaders/crysis.glsl");
     if (crysis_shader.invalid) return 1;
 
@@ -36,7 +39,11 @@ int main(void)
 
     // lighters
     std::vector<gl::Light> lighters;
-    lighters.push_back(gl::CreateDirLight(glm::normalize(glm::vec3(-0.2f, -0.2f, -0.5f))));
+    //lighters.push_back(gl::CreateDirLight(glm::normalize(glm::vec3(-0.2f, -0.2f, -0.5f))));
+    lighters.push_back(gl::CreatePointLihgt(glm::vec3(0.4, 1, 1)));
+    lighters.push_back(gl::CreatePointLihgt(glm::vec3(0.4, 4, -1)));
+    lighters.push_back(gl::CreatePointLihgt(glm::vec3(1, 5, 1)));
+
 
     // skybox 
     gl::Cubemap skybox("cubemaps/skybox/skybox.jpg");
@@ -106,6 +113,8 @@ int main(void)
     glEnable(GL_CULL_FACE);
     glDepthFunc(GL_LEQUAL);
 
+    bool normal_mamming_flag = false;
+
     gl::Timer timer;
     while (window.isOpen())
     {
@@ -125,33 +134,45 @@ int main(void)
 
 
         // update lighters
-        phong.Use();
+        blinn_phong.Use();
         
-        gl::ApplyLightToShader(lighters, phong);
+        gl::ApplyLightToShader(lighters, blinn_phong);
 
-        phong.setUni3f("viewPos", camera.m_Position);
-        phong.setUniMat4("projection", projection);
-        phong.setUniMat4("view", view);
+        blinn_phong.setUni3f("viewPos", camera.m_Position);
+        blinn_phong.setUniMat4("projection", projection);
+        blinn_phong.setUniMat4("view", view);
+
+        blinn_phong.setUni1i("normalmapping_flag", 0);
 
         // plane
         model = glm::translate(identity, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(0.01f));	// it's a bit too big for our scene, so scale it down
-        phong.setUniMat4("model", model);
-        ourModel.Draw(phong);
+        blinn_phong.setUniMat4("model", model);
+        ourModel.Draw(blinn_phong);
 
+        
+        static float input_delay = 0.3f;
+        input_delay -= timer.m_DeltaTime;
+        
+        if (input_delay < 0.0f && gl::clicked(GLFW_KEY_N))
+        {
+            normal_mamming_flag ^= true;
+            input_delay = 0.3f;
+        }
+        blinn_phong.setUni1i("normalmapping_flag", normal_mamming_flag);
+        
+        
         // nanosuit
         model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
         model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
-        phong.setUniMat4("model", model);
-        crysis.Draw(phong);
+        blinn_phong.setUniMat4("model", model);
+        crysis.Draw(blinn_phong);
 
-
-        // draw normals
-        show_normals.setUniMat4("model", model);
-        show_normals.setUniMat4("projection", projection);
-        show_normals.setUniMat4("view", view);
-        
-        crysis.Draw(show_normals);
+        //// draw normals
+        //show_normals.setUniMat4("model", model);
+        //show_normals.setUniMat4("projection", projection);
+        //show_normals.setUniMat4("view", view);
+        //crysis.Draw(show_normals);
 
         
         // draw skybox

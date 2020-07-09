@@ -12,7 +12,7 @@ namespace gl
 		inline void Update()
 		{
 			double now = glfwGetTime();
-			m_DeltaTime = m_LastTime - now;
+			m_DeltaTime = now - m_LastTime;
 			m_LastTime = now;
 		}
 
