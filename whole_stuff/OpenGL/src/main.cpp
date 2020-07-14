@@ -120,7 +120,7 @@ int main(void)
     bool normal_mamming_flag = false;
 
     gl::Shader depthShader("shaders/depth_shader.glsl");
-    gl::Depthbuffer shadow_map({ {1024, 1024} });
+    gl::Depthbuffer shadow_map({ {512, 512} });
 
     gl::Timer timer;
     while (window.isOpen())
