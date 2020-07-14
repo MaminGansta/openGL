@@ -3,6 +3,7 @@
 #define GLEW_STATIC
 #include "GL/glew.h"
 
+#include "framebuffer/depthbuffer.h"
 #include "cubemap/cubemap.h"
 #include "light/light.h"
 #include "window/timer.h"

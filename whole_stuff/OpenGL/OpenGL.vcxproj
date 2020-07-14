@@ -151,7 +151,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\opengl\framebuffer\depthbuffer.cpp" />
     <ClCompile Include="src\opengl\cubemap\cubemap.cpp" />
+    <ClCompile Include="src\opengl\framebuffer\framebuffer.cpp" />
     <ClCompile Include="src\opengl\light\light.cpp" />
     <ClCompile Include="src\opengl\camera\camera.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
@@ -227,7 +229,10 @@
     <ClCompile Include="src\process_input\process_input.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\opengl\framebuffer\depthbuffer.h" />
     <ClInclude Include="src\opengl\cubemap\cubemap.h" />
+    <ClInclude Include="src\opengl\framebuffer\framebuffer.h" />
+    <ClInclude Include="src\opengl\framebuffer\framebuffer_specification.h" />
     <ClInclude Include="src\opengl\light\light.h" />
     <ClInclude Include="src\opengl\window\input.h" />
     <ClInclude Include="src\opengl\window\timer.h" />
@@ -242,7 +247,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\blinn_phong.glsl" />
+    <None Include="shaders\depth_shader.glsl" />
     <None Include="shaders\phong.glsl" />
+    <None Include="shaders\shadow_phong.glsl" />
     <None Include="shaders\show_normals.glsl" />
     <None Include="shaders\skybox.glsl" />
   </ItemGroup>

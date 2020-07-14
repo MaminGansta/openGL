@@ -15,8 +15,8 @@ namespace gl
         ~Window();
 
         void Resize(int width, int height);
-        void ResizeFrameBuffer();
-
+        void UseViewPort();
+        
         void CatchCursor(bool flag);
         
         bool isOpen();

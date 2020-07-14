@@ -2,6 +2,8 @@
 
 #include "assimp/scene.h"
 
+#include "glm.hpp"
+
 #include "mesh.h"
 #include "shader/shader.h"
 

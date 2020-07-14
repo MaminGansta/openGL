@@ -137,12 +137,13 @@ namespace gl
         glfwSetWindowSize(m_Window, width, height);
     }
 
-    void Window::ResizeFrameBuffer()
+    void Window::UseViewPort()
     {
         int width, height;
         glfwGetFramebufferSize(m_Window, &width, &height);
         glViewport(0, 0, width, height);
     }
+
 
     void Window::CatchCursor(bool catch_flag)
     {

@@ -51,6 +51,12 @@
     <ClCompile Include="src\opengl\cubemap\cubemap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\opengl\framebuffer\framebuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\opengl\framebuffer\depthbuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\opengl\camera\camera.h">
@@ -89,11 +95,22 @@
     <ClInclude Include="src\opengl\cubemap\cubemap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\opengl\framebuffer\framebuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\opengl\framebuffer\depthbuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\opengl\framebuffer\framebuffer_specification.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\phong.glsl" />
     <None Include="shaders\skybox.glsl" />
     <None Include="shaders\show_normals.glsl" />
     <None Include="shaders\blinn_phong.glsl" />
+    <None Include="shaders\depth_shader.glsl" />
+    <None Include="shaders\shadow_phong.glsl" />
   </ItemGroup>
 </Project>

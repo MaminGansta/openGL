@@ -16,11 +16,15 @@ int main(void)
     gl::Shader blinn_phong("shaders/blinn_phong.glsl");
     if (blinn_phong.invalid) return 1;
 
-    gl::Shader crysis_shader("shaders/crysis.glsl");
-    if (crysis_shader.invalid) return 1;
-
     gl::Shader show_normals("shaders/show_normals.glsl");
     if (show_normals.invalid) return 1;
+
+    gl::Shader solid_color("shaders/lighter.glsl");
+    if (solid_color.invalid) return 1;
+
+    gl::Shader shadow_phong("shaders/shadow_phong.glsl");
+    if (shadow_phong.invalid) return 1;
+
 
     // cube and lighter position
     glm::vec3 lightPos(2.5f, 0.0f, -6.0f);
@@ -35,14 +39,14 @@ int main(void)
 
     // model
     gl::Model crysis("models/crysis/nanosuit.obj");
-    gl::Model ourModel("models/plane/scene.gltf");
+    gl::Model plane("models/plane/scene.gltf");
 
     // lighters
     std::vector<gl::Light> lighters;
-    //lighters.push_back(gl::CreateDirLight(glm::normalize(glm::vec3(-0.2f, -0.2f, -0.5f))));
-    lighters.push_back(gl::CreatePointLihgt(glm::vec3(0.4, 1, 1)));
-    lighters.push_back(gl::CreatePointLihgt(glm::vec3(0.4, 4, -1)));
-    lighters.push_back(gl::CreatePointLihgt(glm::vec3(1, 5, 1)));
+    lighters.push_back(gl::CreateDirLight(glm::normalize(glm::vec3(-0.2f, -0.2f, -0.5f))));
+    //lighters.push_back(gl::CreatePointLihgt(glm::vec3(0.4, 1, 1)));
+    //lighters.push_back(gl::CreatePointLihgt(glm::vec3(0.4, 4, -1)));
+    //lighters.push_back(gl::CreatePointLihgt(glm::vec3(1, 5, 1)));
 
 
     // skybox 
@@ -115,6 +119,9 @@ int main(void)
 
     bool normal_mamming_flag = false;
 
+    gl::Shader depthShader("shaders/depth_shader.glsl");
+    gl::Depthbuffer shadow_map({ {1024, 1024} });
+
     gl::Timer timer;
     while (window.isOpen())
     {
@@ -129,31 +136,59 @@ int main(void)
         //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClear(GL_DEPTH_BUFFER_BIT);
 
+        // update lighters
+        gl::ApplyLightToShader(lighters, blinn_phong);
+
         view = camera.GetLookatMat();
         projection = camera.GetPprojectionMat(window.GetSize().x, window.GetSize().y);
 
-
-        // update lighters
-        blinn_phong.Use();
         
-        gl::ApplyLightToShader(lighters, blinn_phong);
+        //glCullFace(GL_FRONT);
+        // create shadow map
+        float near_plane = 1.0f, far_plane = 10.5f;
+        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+        glm::mat4 lightView = glm::lookAt(glm::vec3(1.0f, 7.0f, 3.0f),
+                                          glm::vec3(0.0f, 0.0f, 0.0f),
+                                          glm::vec3(0.0f, 1.0f, 0.0f));
+        depthShader.setUniMat4("lightSpaceMatrix", lightProjection * lightView);
+        shadow_map.Bind();
+        glClear(GL_DEPTH_BUFFER_BIT);
 
+        // plane
+        //model = glm::translate(identity, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
+        //model = glm::scale(model, glm::vec3(0.01f));	// it's a bit too big for our scene, so scale it down
+        //depthShader.setUniMat4("model", model);
+        //plane.Draw(depthShader);
+
+        // nanosuit
+        model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
+        model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
+        depthShader.setUniMat4("model", model);
+        crysis.Draw(depthShader);
+
+        shadow_map.Unbind();
+        glCullFace(GL_BACK);
+        window.UseViewPort();
+        
         blinn_phong.setUni3f("viewPos", camera.m_Position);
         blinn_phong.setUniMat4("projection", projection);
         blinn_phong.setUniMat4("view", view);
+        blinn_phong.setUniMat4("lightSpaceMatrix", lightProjection* lightView);
+
+        glActiveTexture(GL_TEXTURE0 + 6);
+        blinn_phong.setUni1i("shadowMap", 6);
+        glBindTexture(GL_TEXTURE_2D, shadow_map.m_DepthAttachment);
 
         blinn_phong.setUni1i("normalmapping_flag", 0);
 
         // plane
         model = glm::translate(identity, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.01f));	// it's a bit too big for our scene, so scale it down
+        model = glm::scale(model, glm::vec3(0.03f));	// it's a bit too big for our scene, so scale it down
         blinn_phong.setUniMat4("model", model);
-        ourModel.Draw(blinn_phong);
-
+        plane.Draw(blinn_phong);
         
         static float input_delay = 0.3f;
         input_delay -= timer.m_DeltaTime;
-        
         if (input_delay < 0.0f && gl::clicked(GLFW_KEY_N))
         {
             normal_mamming_flag ^= true;
@@ -161,12 +196,18 @@ int main(void)
         }
         blinn_phong.setUni1i("normalmapping_flag", normal_mamming_flag);
         
-        
+
+        glActiveTexture(GL_TEXTURE0 + 6);
+        blinn_phong.setUni1i("shadowMap", 6);
+        glBindTexture(GL_TEXTURE_2D, shadow_map.m_DepthAttachment);
+
+
         // nanosuit
         model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
         model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
         blinn_phong.setUniMat4("model", model);
         crysis.Draw(blinn_phong);
+
 
         //// draw normals
         //show_normals.setUniMat4("model", model);
