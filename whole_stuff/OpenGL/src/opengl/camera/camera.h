@@ -21,8 +21,8 @@ namespace gl
     // Default camera values
     const static float YAW = -PI / 2;
     const static float PITCH = 0;
-    const static float MAX_SPEED = 10.0f;
-    const static float DELTA_SPEED = 0.5f;
+    const static float MAX_SPEED = 20.0f;
+    const static float DELTA_SPEED = 1.0f;
 
     const static float SENSITIVTY = 0.25f;
     const static float FOV = PI / 4;

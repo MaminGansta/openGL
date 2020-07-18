@@ -1,6 +1,7 @@
 
 #include "opengl/gl_api.h"
 #include "process_input/process_input.h"
+#include <array>
 
 int main(void)
 {
@@ -24,6 +25,9 @@ int main(void)
 
     gl::Shader shadow_phong("shaders/shadow_phong.glsl");
     if (shadow_phong.invalid) return 1;
+
+    gl::Shader image_shader("shaders/draw_image_shader.glsl");
+    if (image_shader.invalid) return 1;
 
 
     // cube and lighter position
@@ -112,6 +116,28 @@ int main(void)
     glBindVertexArray(0);
 
 
+    // shadow map texture
+    unsigned int quadVAO = 0;
+    unsigned int quadVBO;
+    float quadVertices[] = {
+        // positions        // texture Coords
+        -1.0f,  0.0f, 0.0f, 0.0f, 1.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+         0.0f,  0.0f, 0.0f, 1.0f, 1.0f,
+         0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+    };
+     // setup plane VAO
+     glGenVertexArrays(1, &quadVAO);
+     glGenBuffers(1, &quadVBO);
+     glBindVertexArray(quadVAO);
+     glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+     glEnableVertexAttribArray(0);
+     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+     glEnableVertexAttribArray(1);
+     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+
     // zbuffer anable
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
@@ -119,8 +145,23 @@ int main(void)
 
     bool normal_mamming_flag = false;
 
+
+    // shadow maping
     gl::Shader depthShader("shaders/depth_shader.glsl");
-    gl::Depthbuffer shadow_map({ {512, 512} });
+    gl::Framebuffer shadow_map({ {1024, 1024} });
+
+    float near_plane = 0.1f, far_plane = 100.0f;
+    float left = -40, right = 40, bot = -40, top = 40;
+    glm::mat4 lightProjection = glm::ortho(left, right, bot, top, near_plane, far_plane);
+    
+    // nanosuits positions
+    std::array<glm::vec3, 5> suits_pos
+    { glm::vec3(0.0f, -2.0f, 0.0f),
+      glm::vec3(50.0f, -2.0f, 0.0f),
+      glm::vec3(-50.0f, -2.0f, 0.0f),
+      glm::vec3(0.0f, -2.0f, 50.0f),
+      glm::vec3(0.0f, -2.0f, -50.0f),
+    };
 
     gl::Timer timer;
     while (window.isOpen())
@@ -130,6 +171,14 @@ int main(void)
 
         // process input 
         ProcessCameraMovement(window, camera, timer.GetDeltaTime());
+
+
+        glm::vec3 pos = camera.m_Position;
+        pos.y += 10.0f;
+        
+        glm::mat4 lightView = glm::lookAt(pos + camera.m_Front * right + -lighters[0].direction * far_plane/2.0f,
+                                          pos + camera.m_Front * right,
+                                          glm::vec3(0.0f, 1.0f, 0.0f));
 
         // clear screen
         //glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -143,16 +192,13 @@ int main(void)
         projection = camera.GetPprojectionMat(window.GetSize().x, window.GetSize().y);
 
         
+
+        // ============================ shadows ==============================
         //glCullFace(GL_FRONT);
         // create shadow map
-        float near_plane = 1.0f, far_plane = 10.5f;
-        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-        glm::mat4 lightView = glm::lookAt(glm::vec3(1.0f, 7.0f, 3.0f),
-                                          glm::vec3(0.0f, 0.0f, 0.0f),
-                                          glm::vec3(0.0f, 1.0f, 0.0f));
         depthShader.setUniMat4("lightSpaceMatrix", lightProjection * lightView);
         shadow_map.Bind();
-        glClear(GL_DEPTH_BUFFER_BIT);
+        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
         // plane
         //model = glm::translate(identity, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
@@ -160,13 +206,18 @@ int main(void)
         //depthShader.setUniMat4("model", model);
         //plane.Draw(depthShader);
 
-        // nanosuit
-        model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
-        model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
-        depthShader.setUniMat4("model", model);
-        crysis.Draw(depthShader);
-
+        // nanosuits
+        for (int i = 0; i < 5; i++)
+        {
+            model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
+            model = glm::translate(model, glm::vec3(suits_pos[i]));
+            depthShader.setUniMat4("model", model);
+            crysis.Draw(depthShader);
+        }
         shadow_map.Unbind();
+        // ====================================================================
+
+
         glCullFace(GL_BACK);
         window.UseViewPort();
         
@@ -201,12 +252,14 @@ int main(void)
         blinn_phong.setUni1i("shadowMap", 6);
         glBindTexture(GL_TEXTURE_2D, shadow_map.m_DepthAttachment);
 
-
-        // nanosuit
-        model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
-        model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
-        blinn_phong.setUniMat4("model", model);
-        crysis.Draw(blinn_phong);
+        // nanosuits
+        for (int i = 0; i < 5; i++)
+        {
+            model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
+            model = glm::translate(model, suits_pos[i]);
+            blinn_phong.setUniMat4("model", model);
+            crysis.Draw(blinn_phong);
+        }
 
 
         //// draw normals
@@ -222,11 +275,23 @@ int main(void)
 
         skyboxShader.setUniMat4("projection", projection);
         skyboxShader.setUniMat4("view", glm::mat3(view));
-
         glBindVertexArray(skyboxVAO);
         glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.textureID);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glDepthMask(GL_TRUE);
+
+
+        // draw shadowmap texture
+        image_shader.Use();
+        glActiveTexture(GL_TEXTURE0 + 6);
+        image_shader.setUni1i("depthMap", 6);
+        glBindTexture(GL_TEXTURE_2D, shadow_map.m_ColorAttachment);
+
+        glBindVertexArray(quadVAO);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glBindVertexArray(0);
+
+
 
         window.SwapBuffer();
     }

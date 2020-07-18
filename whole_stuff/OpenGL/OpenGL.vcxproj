@@ -248,6 +248,7 @@
   <ItemGroup>
     <None Include="shaders\blinn_phong.glsl" />
     <None Include="shaders\depth_shader.glsl" />
+    <None Include="shaders\draw_image_shader.glsl" />
     <None Include="shaders\phong.glsl" />
     <None Include="shaders\shadow_phong.glsl" />
     <None Include="shaders\show_normals.glsl" />
