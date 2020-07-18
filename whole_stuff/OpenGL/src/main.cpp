@@ -151,7 +151,7 @@ int main(void)
     gl::Framebuffer shadow_map({ {1024, 1024} });
 
     float near_plane = 0.1f, far_plane = 100.0f;
-    float left = -40, right = 40, bot = -40, top = 40;
+    float left = -40, right = 40, bot = -40, top = 40.0f;
     glm::mat4 lightProjection = glm::ortho(left, right, bot, top, near_plane, far_plane);
     
     // nanosuits positions
@@ -187,6 +187,13 @@ int main(void)
 
         // update lighters
         gl::ApplyLightToShader(lighters, blinn_phong);
+
+        // move global light
+        float radius = 5.0f;
+        float lightX = sinf(glfwGetTime() * 0.2f) * radius;
+        float lightZ = cosf(glfwGetTime() * 0.2f) * radius;
+        lighters[0].direction = glm::normalize(-glm::vec3(lightX, 3.0f, lightZ));
+
 
         view = camera.GetLookatMat();
         projection = camera.GetPprojectionMat(window.GetSize().x, window.GetSize().y);
