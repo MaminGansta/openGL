@@ -12,7 +12,7 @@ namespace gl
 
             if (!stream.is_open())
             {
-                printf("file \"%s\" not exist\n", filepath);
+                printf("file \"%s\" don't exist\n", filepath);
                 return false;
             }
 

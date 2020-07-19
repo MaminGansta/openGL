@@ -3,6 +3,8 @@
 #include "process_input/process_input.h"
 #include <array>
 
+void gaussian_blur_func(gl::Framebuffer& framebuffer, gl::Framebuffer& buffer, gl::Shader& gauss, unsigned int FullScreenQuadVAO);
+
 int main(void)
 {
     gl::Window window("OpenGL");
@@ -28,6 +30,12 @@ int main(void)
 
     gl::Shader image_shader("shaders/draw_image_shader.glsl");
     if (image_shader.invalid) return 1;
+
+    gl::Shader draw_shadow("shaders/draw_only_shadow.glsl");
+    if (draw_shadow.invalid) return 1;
+
+    gl::Shader gaussian_blur("shaders/gaussian_blur.glsl");
+    if (gaussian_blur.invalid) return 1;
 
 
     // cube and lighter position
@@ -55,7 +63,6 @@ int main(void)
 
     // skybox 
     gl::Cubemap skybox("cubemaps/skybox/skybox.jpg");
-
     gl::Shader skyboxShader("shaders/skybox.glsl");
 
     float skyboxVertices[] = {
@@ -102,7 +109,6 @@ int main(void)
         -1.0f, -1.0f,  1.0f,
          1.0f, -1.0f,  1.0f
     };
-    
     uint32_t skyboxVAO, skyboxVBO;
     glGenVertexArrays(1, &skyboxVAO);
     glGenBuffers(1, &skyboxVBO);
@@ -117,20 +123,41 @@ int main(void)
 
 
     // shadow map texture
-    unsigned int quadVAO = 0;
-    unsigned int quadVBO;
-    float quadVertices[] = {
+    unsigned int ShadowQuadVAO = 0;
+    unsigned int ShadowQuadVBO;
+    float ShadowQuadVertices[] = {
         // positions        // texture Coords
-        -1.0f,  0.0f, 0.0f, 0.0f, 1.0f,
+        -1.0f,  -0.2f, 0.0f, 0.0f, 1.0f,
         -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-         0.0f,  0.0f, 0.0f, 1.0f, 1.0f,
-         0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+         -0.2f,  -0.2f, 0.0f, 1.0f, 1.0f,
+         -0.2f, -1.0f, 0.0f, 1.0f, 0.0f,
     };
      // setup plane VAO
-     glGenVertexArrays(1, &quadVAO);
-     glGenBuffers(1, &quadVBO);
-     glBindVertexArray(quadVAO);
-     glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+     glGenVertexArrays(1, &ShadowQuadVAO);
+     glGenBuffers(1, &ShadowQuadVBO);
+     glBindVertexArray(ShadowQuadVAO);
+     glBindBuffer(GL_ARRAY_BUFFER, ShadowQuadVBO);
+     glBufferData(GL_ARRAY_BUFFER, sizeof(ShadowQuadVertices), &ShadowQuadVertices, GL_STATIC_DRAW);
+     glEnableVertexAttribArray(0);
+     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+     glEnableVertexAttribArray(1);
+     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+
+
+     unsigned int FullScreenQuadVAO = 0;
+     unsigned int FullScreenQuadVBO;
+     float quadVertices[] = {
+         // positions        // texture Coords
+         -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+         -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+          1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+          1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+     };
+     // setup plane VAO
+     glGenVertexArrays(1, &FullScreenQuadVAO);
+     glGenBuffers(1, &FullScreenQuadVBO);
+     glBindVertexArray(FullScreenQuadVAO);
+     glBindBuffer(GL_ARRAY_BUFFER, FullScreenQuadVBO);
      glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
      glEnableVertexAttribArray(0);
      glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -144,7 +171,6 @@ int main(void)
     glDepthFunc(GL_LEQUAL);
 
     bool normal_mamming_flag = false;
-
 
     // shadow maping
     gl::Shader depthShader("shaders/depth_shader.glsl");
@@ -163,6 +189,11 @@ int main(void)
       glm::vec3(0.0f, -2.0f, -50.0f),
     };
 
+    // blur stuff
+    gl::Framebuffer shadow_raw({ {800, 600} });
+    gl::Framebuffer shadow_blur_buffer({ {800, 600} });
+
+
     gl::Timer timer;
     while (window.isOpen())
     {
@@ -172,14 +203,13 @@ int main(void)
         // process input 
         ProcessCameraMovement(window, camera, timer.GetDeltaTime());
 
-
+        
         glm::vec3 pos = camera.m_Position;
         pos.y += 10.0f;
         
         glm::mat4 lightView = glm::lookAt(pos + camera.m_Front * right + -lighters[0].direction * far_plane/2.0f,
                                           pos + camera.m_Front * right,
                                           glm::vec3(0.0f, 1.0f, 0.0f));
-
         // clear screen
         //glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -194,10 +224,8 @@ int main(void)
         float lightZ = cosf(glfwGetTime() * 0.2f) * radius;
         lighters[0].direction = glm::normalize(-glm::vec3(lightX, 3.0f, lightZ));
 
-
         view = camera.GetLookatMat();
         projection = camera.GetPprojectionMat(window.GetSize().x, window.GetSize().y);
-
         
 
         // ============================ shadows ==============================
@@ -222,19 +250,27 @@ int main(void)
             crysis.Draw(depthShader);
         }
         shadow_map.Unbind();
+        //glCullFace(GL_BACK);
         // ====================================================================
 
-
-        glCullFace(GL_BACK);
-        window.UseViewPort();
         
-        blinn_phong.setUni3f("viewPos", camera.m_Position);
-        blinn_phong.setUniMat4("projection", projection);
-        blinn_phong.setUniMat4("view", view);
-        blinn_phong.setUniMat4("lightSpaceMatrix", lightProjection* lightView);
+        if (window.GetSize() != shadow_raw.GetSize())
+        {
+            shadow_raw.Resize(window.GetSize());
+            shadow_blur_buffer.Resize(window.GetSize());
+        }
+
+        //window.UseViewPort();
+        shadow_raw.Bind();
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        draw_shadow.setUni3f("viewPos", camera.m_Position);
+        draw_shadow.setUniMat4("projection", projection);
+        draw_shadow.setUniMat4("view", view);
+        draw_shadow.setUniMat4("lightSpaceMatrix", lightProjection* lightView);
 
         glActiveTexture(GL_TEXTURE0 + 6);
-        blinn_phong.setUni1i("shadowMap", 6);
+        draw_shadow.setUni1i("shadowMap", 6);
         glBindTexture(GL_TEXTURE_2D, shadow_map.m_DepthAttachment);
 
         blinn_phong.setUni1i("normalmapping_flag", 0);
@@ -242,8 +278,8 @@ int main(void)
         // plane
         model = glm::translate(identity, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(0.03f));	// it's a bit too big for our scene, so scale it down
-        blinn_phong.setUniMat4("model", model);
-        plane.Draw(blinn_phong);
+        draw_shadow.setUniMat4("model", model);
+        plane.Draw(draw_shadow);
         
         static float input_delay = 0.3f;
         input_delay -= timer.m_DeltaTime;
@@ -256,7 +292,7 @@ int main(void)
         
 
         glActiveTexture(GL_TEXTURE0 + 6);
-        blinn_phong.setUni1i("shadowMap", 6);
+        draw_shadow.setUni1i("shadowMap", 6);
         glBindTexture(GL_TEXTURE_2D, shadow_map.m_DepthAttachment);
 
         // nanosuits
@@ -264,10 +300,9 @@ int main(void)
         {
             model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
             model = glm::translate(model, suits_pos[i]);
-            blinn_phong.setUniMat4("model", model);
-            crysis.Draw(blinn_phong);
+            draw_shadow.setUniMat4("model", model);
+            crysis.Draw(draw_shadow);
         }
-
 
         //// draw normals
         //show_normals.setUniMat4("model", model);
@@ -275,7 +310,6 @@ int main(void)
         //show_normals.setUniMat4("view", view);
         //crysis.Draw(show_normals);
 
-        
         // draw skybox
         glDepthMask(GL_FALSE);
         skyboxShader.Use();
@@ -287,21 +321,66 @@ int main(void)
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glDepthMask(GL_TRUE);
 
+        
+        // blur
+        gaussian_blur_func(shadow_raw, shadow_blur_buffer, gaussian_blur, FullScreenQuadVAO);
 
-        // draw shadowmap texture
+
+        // draw blured shadows on the screen
+        shadow_raw.Unbind();
+
         image_shader.Use();
         glActiveTexture(GL_TEXTURE0 + 6);
         image_shader.setUni1i("depthMap", 6);
-        glBindTexture(GL_TEXTURE_2D, shadow_map.m_ColorAttachment);
-
-        glBindVertexArray(quadVAO);
+        glBindTexture(GL_TEXTURE_2D, shadow_raw.m_ColorAttachment);
+        glBindVertexArray(FullScreenQuadVAO);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         glBindVertexArray(0);
 
 
+        // draw shadowmap texture
+        //image_shader.Use();
+        //glActiveTexture(GL_TEXTURE0 + 6);
+        //image_shader.setUni1i("depthMap", 6);
+        //glBindTexture(GL_TEXTURE_2D, shadow_map.m_ColorAttachment);
+        //glBindVertexArray(ShadowQuadVAO);
+        //glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        //glBindVertexArray(0);
 
         window.SwapBuffer();
     }
 
     return 0;
+}
+
+
+
+
+void gaussian_blur_func(gl::Framebuffer& framebuffer, gl::Framebuffer& buffer, gl::Shader& gauss, unsigned int FullScreenQuadVAO)
+{
+    glDisable(GL_DEPTH_TEST);
+
+    // horizontal
+    buffer.Bind();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, framebuffer.m_ColorAttachment);
+    gauss.setUni1i("image", 0);
+    gauss.setUni1i("horizontal", 0);
+
+    glBindVertexArray(FullScreenQuadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+
+    // vertical
+    framebuffer.Bind();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, buffer.m_ColorAttachment);
+    gauss.setUni1i("image", 0);
+    gauss.setUni1i("horizontal", 1);
+
+    glBindVertexArray(FullScreenQuadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+
+    glEnable(GL_DEPTH_TEST);
 }
