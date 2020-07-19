@@ -142,6 +142,7 @@ namespace gl
         int width, height;
         glfwGetFramebufferSize(m_Window, &width, &height);
         glViewport(0, 0, width, height);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
 

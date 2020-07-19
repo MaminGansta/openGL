@@ -95,6 +95,8 @@ uniform int nLights;
 uniform Material material;
 uniform sampler2D shadowMap;
 
+uniform vec2 viewportSize;
+
 // function prototypes
 vec3 CalcDirLight(Light light, vec3 normal, vec3 viewDir);
 vec3 CalcPointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir);
@@ -133,42 +135,14 @@ void main()
                 break;
         }
     }
+    
+    vec2 screen_coords = gl_FragCoord.xy / viewportSize;
+    float shadow_coef = texture(shadowMap, screen_coords).r;
+    result *= shadow_coef;
 
     FragColor = vec4(result, 1.0);
 }
 
-float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
-{
-     // perform perspective divide
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    // transform to [0,1] range
-    projCoords = projCoords * 0.5f + 0.5f;
-    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closestDepth = texture(shadowMap, projCoords.xy).r; 
-    // get depth of current fragment from light's perspective
-    float currentDepth = projCoords.z;
-    // check whether current frag pos is in shadow
-    //float bias = 0.01f;
-    float bias = max(0.005f * (1.0f - dot(normal, lightDir)), 0.001f);
-    //float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
-
-    float shadow = 0.0f;
-    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
-    for(int x = -1; x <= 1; ++x)
-    {
-        for(int y = -1; y <= 1; ++y)
-        {
-            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-            shadow += currentDepth - bias > pcfDepth ? 1.0f : 0.0f;
-        }
-    }
-    shadow /= 9.0f;
-
-    if(projCoords.z > 1.0f)
-        shadow = 0.0f;
-
-    return shadow;
-}
 
 // calculates the color when using a directional light.
 vec3 CalcDirLight(Light light, vec3 normal, vec3 viewDir)
@@ -186,18 +160,18 @@ vec3 CalcDirLight(Light light, vec3 normal, vec3 viewDir)
     //float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
 
     // combine results
-    vec3 color = texture(material.diffuse1, TexCoords).rgb;
+    //vec3 color = texture(material.diffuse1, TexCoords).rgb;
     vec3 ambient = light.ambient * vec3(texture(material.diffuse1, TexCoords));
     vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse1, TexCoords));
     vec3 specular = light.specular * spec * vec3(texture(material.specular1, TexCoords));
 
     // calculate shadow
-    float shadow = ShadowCalculation(FragPosLightSpace, normal, lightDir);
+    //float shadow = ShadowCalculation(FragPosLightSpace, normal, lightDir);
     //vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;
-    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular));
+    //vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular));
 
-    return lighting;
-    //return (ambient + diffuse + specular);
+    //return lighting;
+    return (ambient + diffuse + specular);
 
     //vec3 color = texture(diffuseTexture, fs_in.TexCoords).rgb;
     //vec3 normal = normalize(fs_in.Normal);
