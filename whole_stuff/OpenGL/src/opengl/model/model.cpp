@@ -181,6 +181,16 @@ namespace gl
                     textures_loaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecesery load duplicate textures.
                 }
             }
+            
+            // create white texture 1x1
+            if (textures_loaded.size() == 0)
+            {
+                static int white_texture_plug = CreateTexturePlug();
+                Texture texture;
+                texture.id = white_texture_plug;
+                texture.type = texture_type;
+                textures.push_back(texture);
+            }
         }
 
 
@@ -220,6 +230,27 @@ namespace gl
             printf("Texture failed to load at path: %s\n", path);
             stbi_image_free(data);
         }
+
+        return textureID;
+    }
+
+
+
+    unsigned int CreateTexturePlug()
+    {
+        unsigned int textureID;
+        glGenTextures(1, &textureID);
+
+        uint8_t color[] = { 230, 230, 230, 255 };
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, new uint32_t(*((uint32_t*)color)));
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         return textureID;
     }

@@ -20,7 +20,7 @@ in vec2 TexCoords;
 uniform sampler2D image;
 uniform bool horizontal;
 //uniform float weight[11] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
-float weight[11] = float[] (0.0093,	0.028002, 0.065984, 0.121703, 0.175713, 0.198596, 0.175713, 0.121703, 0.065984, 0.028002, 0.0093);
+float weight[5] = float[] (0.06136, 0.24477, 0.38774, 0.24477, 0.06136);
 
 void main()
 {
@@ -29,16 +29,16 @@ void main()
     vec3 result = texture(image, TexCoords).rgb * weight[0]; 
     if(horizontal)
     {
-        for(int i = -5; i < 5; ++i)
+        for(int i = -2; i < 2; ++i)
         {
-            result += texture(image, TexCoords + vec2(tex_offset.x * i, 0.0)).rgb * weight[i + 5];
+            result += texture(image, TexCoords + vec2(tex_offset.x * i, 0.0)).rgb * weight[i + 2];
         }
     }
     else
     {
-        for(int i = -5; i < 5; ++i)
+        for(int i = -2; i < 2; ++i)
         {
-            result += texture(image, TexCoords + vec2(0.0, tex_offset.y * i)).rgb * weight[i + 5];
+            result += texture(image, TexCoords + vec2(0.0, tex_offset.y * i)).rgb * weight[i + 2];
         }
     }
     FragColor = vec4(result, 1.0);

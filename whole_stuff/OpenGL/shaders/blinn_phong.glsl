@@ -136,9 +136,13 @@ void main()
         }
     }
     
+    // shadow
     vec2 screen_coords = gl_FragCoord.xy / viewportSize;
     float shadow_coef = texture(shadowMap, screen_coords).r;
     result *= shadow_coef;
+
+    // material ambient
+    //vec3 ambient = 0.2f * vec3(texture(material.diffuse1, TexCoords));
 
     FragColor = vec4(result, 1.0);
 }

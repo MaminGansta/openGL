@@ -15,6 +15,8 @@ namespace gl
 {
     unsigned int TextureFromFile(const char* path, const std::string& directory);
 
+    static unsigned int CreateTexturePlug();
+
     class Model
     {
     public:
