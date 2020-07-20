@@ -3,6 +3,7 @@
 #include "process_input/process_input.h"
 #include <array>
 
+int blur_passes = 1;
 void gaussian_blur_func(gl::Framebuffer& framebuffer, gl::Framebuffer& buffer, gl::Shader& gauss, unsigned int FullScreenQuadVAO);
 
 int main(void)
@@ -180,7 +181,7 @@ int main(void)
     gl::Framebuffer shadow_map({ {1024, 1024} });
 
     float near_plane = 0.1f, far_plane = 100.0f;
-    float left = -40, right = 40, bot = -40, top = 40.0f;
+    float left = -50, right = 50, bot = -50, top = 50;
     glm::mat4 lightProjection = glm::ortho(left, right, bot, top, near_plane, far_plane);
     
     // nanosuits positions
@@ -229,13 +230,22 @@ int main(void)
             shadow_map_flag ^= true;
             input_delay = 0.3f;
         }
+        if (input_delay < 0.0f && gl::clicked(GLFW_KEY_UP))
+        {
+            blur_passes = __min(blur_passes + 1, 20);
+            printf("blur passes: %d\n", blur_passes);
+            input_delay = 0.3f;
+        }
+        if (input_delay < 0.0f && gl::clicked(GLFW_KEY_DOWN))
+        {
+            blur_passes = __max(blur_passes - 1, 1);
+            printf("blur passes: %d\n", blur_passes);
+            input_delay = 0.3f;
+        }
 
         // Shadow map lookAt
-        glm::vec3 pos = camera.m_Position;
-        pos.y += 10.0f;
-        
-        glm::mat4 lightView = glm::lookAt(pos + camera.m_Front * right + -lighters[0].direction * far_plane/2.0f,
-                                          pos + camera.m_Front * right,
+        glm::mat4 lightView = glm::lookAt(camera.m_Position + camera.m_Front * right + -lighters[0].direction * far_plane/2.0f,
+                                          camera.m_Position + camera.m_Front * right,
                                           glm::vec3(0.0f, 1.0f, 0.0f));
         // clear screen
         //glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -282,10 +292,10 @@ int main(void)
 
         
         // ========================== Render shadows in scene ========================================
-        if (window.GetSize() != shadow_raw.GetSize())
+        if (window.GetSize() / 4 != shadow_raw.GetSize())
         {
-            shadow_raw.Resize(window.GetSize());
-            shadow_blur_buffer.Resize(window.GetSize());
+            shadow_raw.Resize(window.GetSize() / 4);
+            shadow_blur_buffer.Resize(window.GetSize() / 4);
         }
         shadow_raw.Bind();
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -412,27 +422,30 @@ void gaussian_blur_func(gl::Framebuffer& framebuffer, gl::Framebuffer& buffer, g
 {
     glDisable(GL_DEPTH_TEST);
 
-    // horizontal
-    buffer.Bind();
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, framebuffer.m_ColorAttachment);
-    gauss.setUni1i("image", 0);
-    gauss.setUni1i("horizontal", 0);
+    for (int i = 0; i < blur_passes; i++)
+    {
+        // horizontal
+        buffer.Bind();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, framebuffer.m_ColorAttachment);
+        gauss.setUni1i("image", 0);
+        gauss.setUni1i("horizontal", 0);
 
-    glBindVertexArray(FullScreenQuadVAO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
+        glBindVertexArray(FullScreenQuadVAO);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glBindVertexArray(0);
 
-    // vertical
-    framebuffer.Bind();
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, buffer.m_ColorAttachment);
-    gauss.setUni1i("image", 0);
-    gauss.setUni1i("horizontal", 1);
+        // vertical
+        framebuffer.Bind();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, buffer.m_ColorAttachment);
+        gauss.setUni1i("image", 0);
+        gauss.setUni1i("horizontal", 1);
 
-    glBindVertexArray(FullScreenQuadVAO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
+        glBindVertexArray(FullScreenQuadVAO);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glBindVertexArray(0);
+    }
 
     glEnable(GL_DEPTH_TEST);
 }
