@@ -5,14 +5,14 @@
 
 namespace gl
 {
-        bool Shader::parse_shaders(char const* filepath, std::string& vertex, std::string& fragment, std::string& geometry)
+        bool Shader::parse_shaders(const std::string& path, std::string& vertex, std::string& fragment, std::string& geometry)
         {
             enum Type { NONE = -1, VERTEX = 0, FRAGMENT = 1, GEOMETRY = 2 } type = NONE;
-            std::ifstream stream(filepath);
+            std::ifstream stream(path);
 
             if (!stream.is_open())
             {
-                printf("file \"%s\" don't exist\n", filepath);
+                printf("file \"%s\" don't exist\n", path.c_str());
                 return false;
             }
 
@@ -156,17 +156,19 @@ namespace gl
             int res = glGetUniformLocation(id, name.c_str());
 
             if (res == -1)
-                printf_s("no such uniform: %s\n", name.c_str());
+                printf_s("Shader: %s don't have uniform: %s\n", this->name.c_str(), name.c_str());
 
             uniforms[name] = res;
             return res;
         }
 
 
-        Shader::Shader(const char* filepath)
+        Shader::Shader(const std::string& path)
         {
+            name = path.substr(path.find_last_of('/') + 1);
+
             std::string vertexSource, fragmentSource, geometry;
-            invalid = !parse_shaders(filepath, vertexSource, fragmentSource, geometry);
+            invalid = !parse_shaders(path, vertexSource, fragmentSource, geometry);
             invalid = invalid ? true : !compile_shaders(vertexSource, fragmentSource, geometry);
         }
 

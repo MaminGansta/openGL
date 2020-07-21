@@ -30,7 +30,6 @@ void main()
 #version 330 core
 out vec4 FragColor;
 
-
 // Light
 const int DirLight = 0;
 const int PointLight = 1;
@@ -63,8 +62,6 @@ in vec3 FragPos;
 in vec4 FragPosLightSpace;
 in vec3 Normal;
 
-uniform vec3 viewPos;
-
 // Light
 #define MAX_LIGHTS 5
 uniform Light lights[MAX_LIGHTS];
@@ -72,6 +69,8 @@ uniform int nLights;
 
 // Test
 uniform sampler2D shadowMap;
+
+uniform vec3 viewPos;
 
 float CalcDirLight(Light light, vec3 normal, vec3 viewDir);
 float CalcPointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir);

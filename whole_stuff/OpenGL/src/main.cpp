@@ -51,9 +51,26 @@ int main(void)
     glm::mat4 projection(1.0f);
 
     // model
-    gl::Model crysis("models/crysis/nanosuit.obj");
-    gl::Model plane("models/plane/scene.gltf");
-    gl::Model box("models/box/box.obj");
+    gl::Model crysis = gl::ModelLoader::LoadModel("models/crysis/nanosuit.obj");
+    gl::Model plane = gl::ModelLoader::LoadModel("models/plane/scene.gltf", glm::vec3(0, -1, 0), glm::vec3(0.04f));
+    gl::Model box = gl::ModelLoader::LoadModel("models/box/box.obj", glm::vec3(55, 0, 20), glm::vec3 (0.5f));
+
+    std::vector<gl::Model> models;
+
+    models.push_back(plane);
+    models.push_back(box);
+
+    // nanosuits positions
+    std::array<glm::vec3, 5> suits_pos
+    { glm::vec3(0.0f, -1.0f, 0.0f),
+      glm::vec3(30.0f, -1.0f, 0.0f),
+      glm::vec3(-30.0f, -1.0f, 0.0f),
+      glm::vec3(0.0f, -1.0f, 30.0f),
+      glm::vec3(0.0f, -1.0f, -30.0f),
+    };
+
+    for (int i = 0; i < 5; i++)
+        models.push_back(gl::Model(crysis, suits_pos[i], glm::vec3(0.5f)));
 
     // lighters
     std::vector<gl::Light> lighters;
@@ -179,20 +196,12 @@ int main(void)
 
     // shadow maping
     gl::Shader depthShader("shaders/depth_shader.glsl");
-    gl::Framebuffer shadow_map({ {2048, 2048} });
+    gl::Framebuffer shadow_map({ {1024, 1024} });
 
     float near_plane = 0.1f, far_plane = 100.0f;
-    float left = -50, right = 50, bot = -50, top = 50;
+    float left = -100, right = 100, bot = -100, top = 100;
     glm::mat4 lightProjection = glm::ortho(left, right, bot, top, near_plane, far_plane);
     
-    // nanosuits positions
-    std::array<glm::vec3, 5> suits_pos
-    { glm::vec3(0.0f, -2.0f, 0.0f),
-      glm::vec3(50.0f, -2.0f, 0.0f),
-      glm::vec3(-50.0f, -2.0f, 0.0f),
-      glm::vec3(0.0f, -2.0f, 50.0f),
-      glm::vec3(0.0f, -2.0f, -50.0f),
-    };
 
     // blur stuff
     gl::Framebuffer shadow_raw({ {800, 600} });
@@ -245,8 +254,8 @@ int main(void)
         }
 
         // Shadow map lookAt
-        glm::mat4 lightView = glm::lookAt(camera.m_Position + camera.m_Front * (top * 0.7f) + -lighters[0].direction * far_plane/2.0f,
-                                          camera.m_Position + camera.m_Front * (top * 0.7f),
+        glm::mat4 lightView = glm::lookAt(camera.m_Position + camera.m_Front * top * 0.5f + -lighters[0].direction * far_plane / 2.0f,
+                                          camera.m_Position + camera.m_Front * top * 0.5f,
                                           glm::vec3(0.0f, 1.0f, 0.0f));
         // clear screen
         //glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -281,19 +290,23 @@ int main(void)
         //plane.Draw(depthShader);
 
         // nanosuits
-        for (int i = 0; i < 5; i++)
-        {
-            model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
-            model = glm::translate(model, glm::vec3(suits_pos[i]));
-            depthShader.setUniMat4("model", model);
-            crysis.Draw(depthShader);
-        }
+        //for (int i = 0; i < 5; i++)
+        //{
+        //    model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
+        //    model = glm::translate(model, glm::vec3(suits_pos[i]));
+        //    depthShader.setUniMat4("model", model);
+        //    crysis.Draw(depthShader);
+        //}
 
-        // box
-        model = glm::scale(identity, glm::vec3(0.4f));
-        model = glm::translate(model, glm::vec3(120, 0, 50));
-        depthShader.setUniMat4("model", model);
-        box.Draw(depthShader);
+        //// box
+        //model = glm::scale(identity, glm::vec3(0.4f));
+        //model = glm::translate(model, glm::vec3(120, 0, 50));
+        //depthShader.setUniMat4("model", model);
+        //box.Draw(depthShader);
+
+        for (auto& model : models)
+            model.Draw(depthShader);
+
 
         shadow_map.Unbind();
         //glCullFace(GL_BACK);
@@ -301,7 +314,7 @@ int main(void)
 
         
         // ========================== Render shadows in scene ========================================
-        int down_scale_shadow_quality = 2;
+        int down_scale_shadow_quality = 1;
 
         if (window.GetSize() / down_scale_shadow_quality != shadow_raw.GetSize())
         {
@@ -323,34 +336,38 @@ int main(void)
 
 
         // plane
-        model = glm::translate(identity, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.03f));	// it's a bit too big for our scene, so scale it down
-        draw_shadow.setUniMat4("model", model);
-        plane.Draw(draw_shadow);
+        //model = glm::translate(identity, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
+        //model = glm::scale(model, glm::vec3(0.03f));	// it's a bit too big for our scene, so scale it down
+        //draw_shadow.setUniMat4("model", model);
+        //plane.Draw(draw_shadow);
 
 
-        glActiveTexture(GL_TEXTURE0 + 6);
-        draw_shadow.setUni1i("shadowMap", 6);
-        glBindTexture(GL_TEXTURE_2D, shadow_map.m_DepthAttachment);
+        //glActiveTexture(GL_TEXTURE0 + 6);
+        //draw_shadow.setUni1i("shadowMap", 6);
+        //glBindTexture(GL_TEXTURE_2D, shadow_map.m_DepthAttachment);
 
-        // nanosuits
-        for (int i = 0; i < 5; i++)
-        {
-            model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
-            model = glm::translate(model, suits_pos[i]);
-            draw_shadow.setUniMat4("model", model);
-            crysis.Draw(draw_shadow);
-        }
+        //// nanosuits
+        //for (int i = 0; i < 5; i++)
+        //{
+        //    model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
+        //    model = glm::translate(model, suits_pos[i]);
+        //    draw_shadow.setUniMat4("model", model);
+        //    crysis.Draw(draw_shadow);
+        //}
 
-        glActiveTexture(GL_TEXTURE0 + 6);
-        draw_shadow.setUni1i("shadowMap", 6);
-        glBindTexture(GL_TEXTURE_2D, shadow_map.m_DepthAttachment);
+        //glActiveTexture(GL_TEXTURE0 + 6);
+        //draw_shadow.setUni1i("shadowMap", 6);
+        //glBindTexture(GL_TEXTURE_2D, shadow_map.m_DepthAttachment);
 
-        // box
-        model = glm::scale(identity, glm::vec3(0.4f));
-        model = glm::translate(model, glm::vec3(120, 0, 50));
-        draw_shadow.setUniMat4("model", model);
-        box.Draw(draw_shadow);
+        //// box
+        //model = glm::scale(identity, glm::vec3(0.4f));
+        //model = glm::translate(model, glm::vec3(120, 0, 50));
+        //draw_shadow.setUniMat4("model", model);
+        //box.Draw(draw_shadow);
+
+        for (auto& model : models)
+            model.Draw(draw_shadow);
+
 
 
         if (shadow_blur_flag)
@@ -370,38 +387,41 @@ int main(void)
         blinn_phong.setUni1i("shadowMap", 6);
         glBindTexture(GL_TEXTURE_2D, shadow_raw.m_ColorAttachment);
 
-        blinn_phong.setUni1i("normalmapping_flag", 0);
+        //blinn_phong.setUni1i("normalmapping_flag", 0);
 
-        // plane
-        model = glm::translate(identity, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.03f));	// it's a bit too big for our scene, so scale it down
-        blinn_phong.setUniMat4("model", model);
-        plane.Draw(blinn_phong);
+        //// plane
+        //model = glm::translate(identity, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
+        //model = glm::scale(model, glm::vec3(0.03f));	// it's a bit too big for our scene, so scale it down
+        //blinn_phong.setUniMat4("model", model);
+        //plane.Draw(blinn_phong);
+        //
+        //blinn_phong.setUni1i("normalmapping_flag", normal_mamming_flag);
+        //
+        //glActiveTexture(GL_TEXTURE0 + 6);
+        //blinn_phong.setUni1i("shadowMap", 6);
+        //glBindTexture(GL_TEXTURE_2D, shadow_raw.m_ColorAttachment);
+        //
+        //// nanosuits
+        //for (int i = 0; i < 5; i++)
+        //{
+        //    model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
+        //    model = glm::translate(model, suits_pos[i]);
+        //    blinn_phong.setUniMat4("model", model);
+        //    crysis.Draw(blinn_phong);
+        //}
+        //
+        //
+        //normal_mamming_flag = false;
+        //blinn_phong.setUni1i("normalmapping_flag", normal_mamming_flag);
+        //
+        //// box
+        //model = glm::scale(identity, glm::vec3(0.4f));
+        //model = glm::translate(model, glm::vec3(120, 0, 50));
+        //blinn_phong.setUniMat4("model", model);
+        //box.Draw(blinn_phong);
 
-        blinn_phong.setUni1i("normalmapping_flag", normal_mamming_flag);
-
-        glActiveTexture(GL_TEXTURE0 + 6);
-        blinn_phong.setUni1i("shadowMap", 6);
-        glBindTexture(GL_TEXTURE_2D, shadow_raw.m_ColorAttachment);
-
-        // nanosuits
-        for (int i = 0; i < 5; i++)
-        {
-            model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
-            model = glm::translate(model, suits_pos[i]);
-            blinn_phong.setUniMat4("model", model);
-            crysis.Draw(blinn_phong);
-        }
-
-
-        normal_mamming_flag = false;
-        blinn_phong.setUni1i("normalmapping_flag", normal_mamming_flag);
-
-        // box
-        model = glm::scale(identity, glm::vec3(0.4f));
-        model = glm::translate(model, glm::vec3(120, 0, 50));
-        blinn_phong.setUniMat4("model", model);
-        box.Draw(blinn_phong);
+        for (auto& model : models)
+            model.Draw(blinn_phong);
 
 
         // draw skybox

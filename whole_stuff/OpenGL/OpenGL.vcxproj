@@ -185,6 +185,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="src\opengl\model\model_loader.cpp" />
     <ClCompile Include="src\opengl\pch\pch.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
@@ -234,6 +235,7 @@
     <ClInclude Include="src\opengl\framebuffer\framebuffer.h" />
     <ClInclude Include="src\opengl\framebuffer\framebuffer_specification.h" />
     <ClInclude Include="src\opengl\light\light.h" />
+    <ClInclude Include="src\opengl\model\model_loader.h" />
     <ClInclude Include="src\opengl\window\input.h" />
     <ClInclude Include="src\opengl\window\timer.h" />
     <ClInclude Include="src\process_input\process_input.h" />

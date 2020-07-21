@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "mesh.h"
 
+
 namespace gl
 {
 
@@ -20,6 +21,8 @@ namespace gl
     // render the mesh
     void Mesh::Draw(Shader& shader)
     {
+        bool normalmap_flag = false;
+
         // bind appropriate textures
         unsigned int diffuseNr = 1;
         unsigned int specularNr = 1;
@@ -31,22 +34,27 @@ namespace gl
             // retrieve texture number (the N in diffuse_textureN)
             int number;
             TextureType type = textures[i].type;
-            if (type == DIFFUSE)
+            if (type == TextureType::DIFFUSE)
                 number = diffuseNr++;
-            else if (type == SPECULAR)
+            else if (type == TextureType::SPECULAR)
                 number = specularNr++; // transfer unsigned int to string
-            else if (type == NORMAL)
+            else if (type == TextureType::NORMAL)
+            {
                 number = normalNr++; // transfer unsigned int to string
-            else if (type == HEIGHT)
+                normalmap_flag = true;
+            }
+            else if (type == TextureType::HEIGHT)
                 number = heightNr++; // transfer unsigned int to string
 
             // now set the sampler to the correct texture unit
             const char* const texture_type_names[] = { "material.diffuse", "material.specular", "material.normal", "material.height" };
-            shader.setUni1i(texture_type_names[type] + std::to_string(number), i);
+            shader.setUni1i(texture_type_names[(int)type] + std::to_string(number), i);
             // and finally bind the texture
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
         }
         shader.setUni1i("material.shininess", shininess);
+
+        shader.setUni1i("normalmapping_flag", normalmap_flag);
 
         // draw mesh
         glBindVertexArray(VAO);

@@ -3,10 +3,10 @@
 #include "shader/shader.h"
 
 
-
 namespace gl
 {
-    struct Vertex {
+    struct Vertex
+    {
         // position
         glm::vec3 Position;
         // normal
@@ -19,33 +19,41 @@ namespace gl
         glm::vec3 Bitangent;
     };
 
-    enum TextureType { DIFFUSE, SPECULAR, NORMAL, HEIGHT };
+    enum class TextureType { DIFFUSE, SPECULAR, NORMAL, HEIGHT };
 
-    struct Texture {
+    struct Texture
+    {
         unsigned int id;
         TextureType type;
-        std::string path;
     };
 
-    class Mesh {
+    class Mesh
+    {
     public:
         /*  Mesh Data  */
         std::vector<Vertex> vertices;
-        std::vector<unsigned int> indices;
+        std::vector<uint32_t> indices;
         std::vector<Texture> textures;
-        unsigned int VAO;
+        uint32_t VAO;
         int shininess = 32;
 
         /*  Functions  */
         // constructor
-        Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
+        Mesh(std::vector<Vertex> vertices, std::vector<uint32_t> indices, std::vector<Texture> textures);
+
+        Mesh(const Mesh&) = default;
+        Mesh& operator= (const Mesh&) = default;
+
+        Mesh(Mesh&&) = default;
+        Mesh& operator= (Mesh&&) = default;
+
         // render the mesh
         void Draw(Shader& shader);
 
 
     private:
         /*  Render data  */
-        unsigned int VBO, EBO;
+        uint32_t VBO, EBO;
 
         /*  Functions    */
         // initializes all the buffer objects/arrays

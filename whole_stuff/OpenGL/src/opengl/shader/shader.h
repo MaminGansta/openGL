@@ -12,16 +12,17 @@ namespace gl
     {
         uint32_t id;
         std::unordered_map<std::string, int> uniforms;
+        std::string name;
         bool invalid = false;
 
     private:
-        bool parse_shaders(char const* filepath, std::string& vertex, std::string& fragment, std::string& geometry);
+        bool parse_shaders(const std::string& path, std::string& vertex, std::string& fragment, std::string& geometry);
         bool compile_shaders(const std::string& vertexSource, const std::string& fragmentSource, const std::string& geometry);
         int getUni(const std::string& name);
 
     public:
 
-        Shader(const char* filepath);
+        Shader(const std::string& path);
 
         void Use();
 

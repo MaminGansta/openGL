@@ -57,6 +57,9 @@
     <ClCompile Include="src\opengl\framebuffer\depthbuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\opengl\model\model_loader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\opengl\camera\camera.h">
@@ -102,6 +105,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\opengl\framebuffer\framebuffer_specification.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\opengl\model\model_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
