@@ -39,6 +39,7 @@ int main(void)
     if (gaussian_blur.invalid) return 1;
 
 
+
     // cube and lighter position
     glm::vec3 lightPos(2.5f, 0.0f, -6.0f);
     glm::vec3 cube_pos(0.0f, 0.0f, -3.5f);
@@ -77,11 +78,11 @@ int main(void)
     lighters.push_back(gl::CreateDirLight(glm::normalize(glm::vec3(-0.2f, -0.2f, -0.5f))));
     lighters.push_back(gl::CreatePointLihgt(glm::vec3(0.4, 1, 1)));
     lighters.push_back(gl::CreatePointLihgt(glm::vec3(20, 1, 1)));
-    lighters.push_back(gl::CreatePointLihgt(glm::vec3(45, 4, -10)));
+    lighters.push_back(gl::CreatePointLihgt(glm::vec3(55, 6, -20)));
 
 
     // skybox 
-    gl::Cubemap skybox("cubemaps/skybox/skybox.jpg");
+    gl::Skybox skybox("cubemaps/skybox/skybox.jpg");
     gl::Shader skyboxShader("shaders/skybox.glsl");
 
     float skyboxVertices[] = {
@@ -196,12 +197,27 @@ int main(void)
 
     // shadow maping
     gl::Shader depthShader("shaders/depth_shader.glsl");
-    gl::Framebuffer shadow_map({ {1024, 1024} });
+    if (depthShader.invalid) return 1;
+    gl::Framebuffer shadow_map({ {2048, 2048} });
 
     float near_plane = 0.1f, far_plane = 100.0f;
     float left = -100, right = 100, bot = -100, top = 100;
     glm::mat4 lightProjection = glm::ortho(left, right, bot, top, near_plane, far_plane);
-    
+
+    // shadow cubemap
+    gl::Shader cubemapDepthShader("shaders/cubemap_depth_shader.glsl");
+    if (cubemapDepthShader.invalid) return 1;
+
+    gl::Cubemap shadowCubemap(1024, 1024);
+    uint32_t depthMapFBO;
+    glGenFramebuffers(1, &depthMapFBO);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowCubemap.textureID, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
     // blur stuff
     gl::Framebuffer shadow_raw({ {800, 600} });
@@ -254,8 +270,8 @@ int main(void)
         }
 
         // Shadow map lookAt
-        glm::mat4 lightView = glm::lookAt(camera.m_Position + camera.m_Front * top * 0.5f + -lighters[0].direction * far_plane / 2.0f,
-                                          camera.m_Position + camera.m_Front * top * 0.5f,
+        glm::mat4 lightView = glm::lookAt(camera.m_Position + camera.m_Front * top * 0.2f + -lighters[0].direction * far_plane / 2.0f,
+                                          camera.m_Position + camera.m_Front * top * 0.2f,
                                           glm::vec3(0.0f, 1.0f, 0.0f));
         // clear screen
         //glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -271,6 +287,7 @@ int main(void)
         float lightX = sinf(glfwGetTime() * 0.2f) * radius;
         float lightZ = cosf(glfwGetTime() * 0.2f) * radius;
         lighters[0].direction = glm::normalize(-glm::vec3(lightX, 3.0f, lightZ));
+        lighters[3].position = glm::vec3(55 + lightX, 6, -20);
 
         view = camera.GetLookatMat();
         projection = camera.GetPprojectionMat(window.GetSize().x, window.GetSize().y);
@@ -283,44 +300,60 @@ int main(void)
         shadow_map.Bind();
         glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-        // plane
-        //model = glm::translate(identity, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
-        //model = glm::scale(model, glm::vec3(0.01f));	// it's a bit too big for our scene, so scale it down
-        //depthShader.setUniMat4("model", model);
-        //plane.Draw(depthShader);
-
-        // nanosuits
-        //for (int i = 0; i < 5; i++)
-        //{
-        //    model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
-        //    model = glm::translate(model, glm::vec3(suits_pos[i]));
-        //    depthShader.setUniMat4("model", model);
-        //    crysis.Draw(depthShader);
-        //}
-
-        //// box
-        //model = glm::scale(identity, glm::vec3(0.4f));
-        //model = glm::translate(model, glm::vec3(120, 0, 50));
-        //depthShader.setUniMat4("model", model);
-        //box.Draw(depthShader);
-
         for (auto& model : models)
             model.Draw(depthShader);
-
 
         shadow_map.Unbind();
         //glCullFace(GL_BACK);
         // ====================================================================
 
+        // ========================= shadow cubeMap =============================
+        //glCullFace(GL_FRONT);
+        
+        float aspect = (float)1024 / (float)1024;
+        float near = 1.0f;
+        float far = 25.0f;
+        glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, far);
+
+        std::vector<glm::mat4> shadowTransforms;
+        shadowTransforms.push_back(shadowProj *
+            glm::lookAt(lighters[3].position, lighters[3].position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+        shadowTransforms.push_back(shadowProj *
+            glm::lookAt(lighters[3].position, lighters[3].position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+        shadowTransforms.push_back(shadowProj *
+            glm::lookAt(lighters[3].position, lighters[3].position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+        shadowTransforms.push_back(shadowProj *
+            glm::lookAt(lighters[3].position, lighters[3].position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+        shadowTransforms.push_back(shadowProj *
+            glm::lookAt(lighters[3].position, lighters[3].position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+        shadowTransforms.push_back(shadowProj *
+            glm::lookAt(lighters[3].position, lighters[3].position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+        
+        for (int i = 0; i < 6; i++)
+            cubemapDepthShader.setUniMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
+
+        cubemapDepthShader.setUni3f("lightPos", lighters[3].position);
+        cubemapDepthShader.setUni1f("far_plane", far);
+        
+        glViewport(0, 0, 1024, 1024);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        for (auto& model : models)
+            model.Draw(cubemapDepthShader);
+
+        //glCullFace(GL_BACK);
+        // ======================================================================
+
         
         // ========================== Render shadows in scene ========================================
         int down_scale_shadow_quality = 1;
-
         if (window.GetSize() / down_scale_shadow_quality != shadow_raw.GetSize())
         {
             shadow_raw.Resize(window.GetSize() / down_scale_shadow_quality);
             shadow_blur_buffer.Resize(window.GetSize() / down_scale_shadow_quality);
         }
+
         shadow_raw.Bind();
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -331,48 +364,21 @@ int main(void)
         draw_shadow.setUniMat4("lightSpaceMatrix", lightProjection* lightView);
 
         glActiveTexture(GL_TEXTURE0 + 6);
-        draw_shadow.setUni1i("shadowMap", 6);
         glBindTexture(GL_TEXTURE_2D, shadow_map.m_DepthAttachment);
+        draw_shadow.setUni1i("shadowMap", 6);
 
-
-        // plane
-        //model = glm::translate(identity, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
-        //model = glm::scale(model, glm::vec3(0.03f));	// it's a bit too big for our scene, so scale it down
-        //draw_shadow.setUniMat4("model", model);
-        //plane.Draw(draw_shadow);
-
-
-        //glActiveTexture(GL_TEXTURE0 + 6);
-        //draw_shadow.setUni1i("shadowMap", 6);
-        //glBindTexture(GL_TEXTURE_2D, shadow_map.m_DepthAttachment);
-
-        //// nanosuits
-        //for (int i = 0; i < 5; i++)
-        //{
-        //    model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
-        //    model = glm::translate(model, suits_pos[i]);
-        //    draw_shadow.setUniMat4("model", model);
-        //    crysis.Draw(draw_shadow);
-        //}
-
-        //glActiveTexture(GL_TEXTURE0 + 6);
-        //draw_shadow.setUni1i("shadowMap", 6);
-        //glBindTexture(GL_TEXTURE_2D, shadow_map.m_DepthAttachment);
-
-        //// box
-        //model = glm::scale(identity, glm::vec3(0.4f));
-        //model = glm::translate(model, glm::vec3(120, 0, 50));
-        //draw_shadow.setUniMat4("model", model);
-        //box.Draw(draw_shadow);
+        // attach cubemap
+        draw_shadow.setUni1f("far_plane", far);
+        glActiveTexture(GL_TEXTURE0 + 7);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, shadowCubemap.textureID);
+        draw_shadow.setUni1i("depthMap", 7);
 
         for (auto& model : models)
             model.Draw(draw_shadow);
 
-
-
+        
         if (shadow_blur_flag)
             gaussian_blur_func(shadow_raw, shadow_blur_buffer, gaussian_blur, FullScreenQuadVAO);
-
 
         // ================================ Render scene ===================================
         window.UseViewPort();
@@ -387,38 +393,6 @@ int main(void)
         blinn_phong.setUni1i("shadowMap", 6);
         glBindTexture(GL_TEXTURE_2D, shadow_raw.m_ColorAttachment);
 
-        //blinn_phong.setUni1i("normalmapping_flag", 0);
-
-        //// plane
-        //model = glm::translate(identity, glm::vec3(0.0f, -1.0f, 0.0f)); // translate it down so it's at the center of the scene
-        //model = glm::scale(model, glm::vec3(0.03f));	// it's a bit too big for our scene, so scale it down
-        //blinn_phong.setUniMat4("model", model);
-        //plane.Draw(blinn_phong);
-        //
-        //blinn_phong.setUni1i("normalmapping_flag", normal_mamming_flag);
-        //
-        //glActiveTexture(GL_TEXTURE0 + 6);
-        //blinn_phong.setUni1i("shadowMap", 6);
-        //glBindTexture(GL_TEXTURE_2D, shadow_raw.m_ColorAttachment);
-        //
-        //// nanosuits
-        //for (int i = 0; i < 5; i++)
-        //{
-        //    model = glm::scale(identity, glm::vec3(0.5f));	// it's a bit too big for our scene, so scale it down
-        //    model = glm::translate(model, suits_pos[i]);
-        //    blinn_phong.setUniMat4("model", model);
-        //    crysis.Draw(blinn_phong);
-        //}
-        //
-        //
-        //normal_mamming_flag = false;
-        //blinn_phong.setUni1i("normalmapping_flag", normal_mamming_flag);
-        //
-        //// box
-        //model = glm::scale(identity, glm::vec3(0.4f));
-        //model = glm::translate(model, glm::vec3(120, 0, 50));
-        //blinn_phong.setUniMat4("model", model);
-        //box.Draw(blinn_phong);
 
         for (auto& model : models)
             model.Draw(blinn_phong);

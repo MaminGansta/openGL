@@ -64,7 +64,7 @@ namespace gl
                     glGetShaderInfoLog(vertexShader, maxLength, &maxLength, (GLchar*)log.data());
                     glDeleteShader(vertexShader);
                     
-                    printf("%s\n", log.c_str());
+                    printf("ERROR: %s\n%s\n", name.c_str(), log.c_str());
                     return false;
                 }
             }
@@ -88,7 +88,7 @@ namespace gl
                     glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, (GLchar*)log.data());
                     glDeleteShader(fragmentShader);
 
-                    printf("%s\n", log.c_str());
+                    printf("ERROR: %s\n%s\n", name.c_str(), log.c_str());
                     return false;
                 }
             }
@@ -102,7 +102,6 @@ namespace gl
                 // agen check the result
                 {
                     GLint success;
-                    GLchar info[512];
                     glGetShaderiv(geometryShader, GL_COMPILE_STATUS, &success);
                     if (!success)
                     {
@@ -115,7 +114,7 @@ namespace gl
                         glGetShaderInfoLog(geometryShader, maxLength, &maxLength, (GLchar*)log.data());
                         glDeleteShader(geometryShader);
 
-                        printf("%s\n", log.c_str());
+                        printf("ERROR: %s\n%s\n", name.c_str(), log.c_str());
                         return false;
                     }
                 }
@@ -131,12 +130,18 @@ namespace gl
             // And check the retult
             {
                 GLint success;
-                GLchar info[512];
                 glGetProgramiv(id, GL_COMPILE_STATUS, &success);
                 if (!success)
                 {
-                    glGetProgramInfoLog(id, 512, NULL, info);
-                    printf("%s\n", info);
+                    GLint maxLength = 0;
+                    glGetShaderiv(geometryShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+                    // The maxLength includes the NULL character
+                    std::string log;
+                    log.resize(maxLength);
+
+                    glGetProgramInfoLog(id, maxLength, NULL, (GLchar*)log.data());
+                    printf("ERROR: %s\n%s\n", name.c_str(), log.c_str());
                     return false;
                 }
             }

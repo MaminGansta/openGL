@@ -60,6 +60,9 @@
     <ClCompile Include="src\opengl\model\model_loader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\opengl\cubemap\skybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\opengl\camera\camera.h">
@@ -110,6 +113,9 @@
     <ClInclude Include="src\opengl\model\model_loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\opengl\cubemap\skybox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\phong.glsl" />
@@ -121,5 +127,6 @@
     <None Include="shaders\draw_image_shader.glsl" />
     <None Include="shaders\draw_only_shadow.glsl" />
     <None Include="shaders\gaussian_blur.glsl" />
+    <None Include="shaders\cubemap_depth_shader.glsl" />
   </ItemGroup>
 </Project>

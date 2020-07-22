@@ -1,40 +1,21 @@
 
-//#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 #include "cubemap.h"
+
 
 namespace gl
 {
-	Cubemap::Cubemap(const std::string& name)
+	Cubemap::Cubemap(int width, int height)
 	{
 		glGenTextures(1, &textureID);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
-		size_t dot_position = name.find_last_of(".");
-		std::string path = name.substr(0, dot_position);
-		std::string ext = name.substr(dot_position);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+		for (unsigned int i = 0; i < 6; ++i)
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,
+				width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 
-		int width, height, nrChannels;
-		unsigned char* data;
-		for (GLuint i = 0; i < 6; i++)
-		{
-			data = stbi_load((path + std::to_string(i) + ext).c_str(), &width, &height, &nrChannels, 0);
-
-			if (data)
-			{
-				glTexImage2D(
-					GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-					0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
-				);
-				stbi_image_free(data);
-			}
-			else
-				printf("cant load cubemap %s\n", (path + std::to_string(i) + ext).c_str());
-		}
-
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);

@@ -6,6 +6,7 @@
 #include "framebuffer/depthbuffer.h"
 #include "framebuffer/framebuffer.h"
 #include "cubemap/cubemap.h"
+#include "cubemap/skybox.h"
 #include "light/light.h"
 #include "window/timer.h"
 #include "camera/camera.h"

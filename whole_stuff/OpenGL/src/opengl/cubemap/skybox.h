@@ -1,14 +1,16 @@
 #pragma once
 
+#pragma once
+
 #include "GL/glew.h"
-#include <cstdint>
+#include <string>
 
 namespace gl
 {
-	struct Cubemap
+	struct Skybox
 	{
 		uint32_t textureID;
-		Cubemap(int width, int height);
+		Skybox(const std::string& name);
 	};
 
 }
