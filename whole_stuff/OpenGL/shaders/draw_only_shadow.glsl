@@ -90,7 +90,7 @@ void main()
     float cubemapShadoe = ShadowCalculationCubemap(FragPos);
 
     vec3 result;
-    for (int i = 1; i < nLights; i++)
+    for (int i = 0; i < nLights; i++)
     {
         switch (lights[i].type)
         {
@@ -108,7 +108,7 @@ void main()
         }
     }
 
-    result = max(vec3(1.0f - shadow) + vec3(1.0f - cubemapShadoe) + result, vec3(0));
+    result = max(vec3(1.5f - shadow) + vec3(1.5f - cubemapShadoe) + result, vec3(0));
     FragColor = vec4(result, 1.0);
 }
 
@@ -159,10 +159,12 @@ float ShadowCalculationCubemap(vec3 fragPos)
     {
         float closestDepth = texture(depthMap, fragToLight + sampleOffsetDirections[i] * diskRadius).r;
         closestDepth *= far_plane;   // обратное преобразование из диапазона [0;1]
+
         if(currentDepth - bias > closestDepth)
-            shadow += 1.0;
+            shadow += 1.5f; //* min(currentDepth, far_plane) / far_plane;
     }
-    shadow /= float(samples);  
+    shadow /= float(samples);
+    //shadow *= max(currentDepth - closestDepth / far_plane, 1.0f);
 
     return shadow;
 }
@@ -183,15 +185,15 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
     
     float shadow = 0.0f;
     vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
-    for(int x = -2; x <= 2; ++x)
+    for(int x = -1; x <= 1; ++x)
     {
-        for(int y = -2; y <= 2; ++y)
+        for(int y = -1; y <= 1; ++y)
         {
             float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
-            shadow += currentDepth - bias > pcfDepth ? 1.0f : 0.0f;
+            shadow += currentDepth - bias > pcfDepth ? 1.5f : 0.0f;
         }
     }
-    shadow /= 25.0f;
+    shadow /= 9.0f;
     
     if(projCoords.z > 1.0f)
         shadow = 0.0f;

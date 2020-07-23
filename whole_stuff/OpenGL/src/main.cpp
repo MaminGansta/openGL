@@ -201,14 +201,14 @@ int main(void)
     gl::Framebuffer shadow_map({ {2048, 2048} });
 
     float near_plane = 0.1f, far_plane = 100.0f;
-    float left = -100, right = 100, bot = -100, top = 100;
+    float left = -50, right = 50, bot = -50, top = 50;
     glm::mat4 lightProjection = glm::ortho(left, right, bot, top, near_plane, far_plane);
 
     // shadow cubemap
     gl::Shader cubemapDepthShader("shaders/cubemap_depth_shader.glsl");
     if (cubemapDepthShader.invalid) return 1;
 
-    gl::Cubemap shadowCubemap(1024, 1024);
+    gl::Cubemap shadowCubemap(512, 512);
     uint32_t depthMapFBO;
     glGenFramebuffers(1, &depthMapFBO);
 
@@ -270,8 +270,8 @@ int main(void)
         }
 
         // Shadow map lookAt
-        glm::mat4 lightView = glm::lookAt(camera.m_Position + camera.m_Front * top * 0.2f + -lighters[0].direction * far_plane / 2.0f,
-                                          camera.m_Position + camera.m_Front * top * 0.2f,
+        glm::mat4 lightView = glm::lookAt(camera.m_Position + camera.m_Front * top * 0.7f + -lighters[0].direction * far_plane * 0.6f,
+                                          camera.m_Position + camera.m_Front * top * 0.7f,
                                           glm::vec3(0.0f, 1.0f, 0.0f));
         // clear screen
         //glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -310,11 +310,11 @@ int main(void)
         // ========================= shadow cubeMap =============================
         //glCullFace(GL_FRONT);
         
-        float aspect = (float)1024 / (float)1024;
+        float aspect = (float)512 / (float)512;
         float near = 1.0f;
         float far = 25.0f;
         glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), aspect, near, far);
-
+        
         std::vector<glm::mat4> shadowTransforms;
         shadowTransforms.push_back(shadowProj *
             glm::lookAt(lighters[3].position, lighters[3].position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
@@ -331,16 +331,17 @@ int main(void)
         
         for (int i = 0; i < 6; i++)
             cubemapDepthShader.setUniMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
-
+        
         cubemapDepthShader.setUni3f("lightPos", lighters[3].position);
         cubemapDepthShader.setUni1f("far_plane", far);
         
-        glViewport(0, 0, 1024, 1024);
+        glViewport(0, 0, 512, 512);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
-
+        
         for (auto& model : models)
-            model.Draw(cubemapDepthShader);
+            if (glm::length(model.Position - lighters[3].position) < 50)
+                model.Draw(cubemapDepthShader);
 
         //glCullFace(GL_BACK);
         // ======================================================================
