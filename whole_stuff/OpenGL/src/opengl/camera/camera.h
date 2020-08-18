@@ -49,6 +49,8 @@ namespace gl
         float m_MouseSensitivity = SENSITIVTY;
         float m_Fov = FOV;
         float m_DeltaFov = 0.05f;
+        float m_NearPlane = 0.1f;
+        float m_FrarPlane = 120.0f;
 
         // Last mouse position
         float m_MouseX = 0.5f;

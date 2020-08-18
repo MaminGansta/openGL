@@ -161,7 +161,7 @@ namespace gl
             int res = glGetUniformLocation(id, name.c_str());
 
             if (res == -1)
-                printf_s("Shader: %s don't have uniform: %s\n", this->name.c_str(), name.c_str());
+                printf_s("Shader: %s doesn't have uniform: %s\n", this->name.c_str(), name.c_str());
 
             uniforms[name] = res;
             return res;

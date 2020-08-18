@@ -45,7 +45,7 @@ namespace gl
     glm::mat4 Camera::GetPprojectionMat(int WindowWidth, int WindowHeight)
     {
         float aspect = (float)WindowWidth / WindowHeight;
-        return glm::perspective<float>(m_Fov, aspect, 0.1f, 120.0f);
+        return glm::perspective<float>(m_Fov, aspect, m_NearPlane, m_FrarPlane);
     }
 
 

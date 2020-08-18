@@ -185,7 +185,7 @@ int main(void)
      glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
 
-    // zbuffer anable
+    // zbuffer enable
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glDepthFunc(GL_LEQUAL);
@@ -195,13 +195,17 @@ int main(void)
     bool shadow_map_flag = false;
     bool shadow_blur_flag = true;
 
-    // shadow maping
+    // shadow mapping
+    // Shadow map cube size
+    float tan_a = tanf(camera.m_Fov);
+    int cube_size = tan_a * camera.m_FrarPlane / 2;
+
     gl::Shader depthShader("shaders/depth_shader.glsl");
     if (depthShader.invalid) return 1;
-    gl::Framebuffer shadow_map({ {2048, 2048} });
+    gl::Framebuffer shadow_map({ {1024, 1024} });
 
-    float near_plane = 0.1f, far_plane = 100.0f;
-    float left = -50, right = 50, bot = -50, top = 50;
+    float near_plane = 0.1f, far_plane = 200.0f;
+    float left = -cube_size, right = cube_size, bot = -cube_size, top = cube_size;
     glm::mat4 lightProjection = glm::ortho(left, right, bot, top, near_plane, far_plane);
 
     // shadow cubemap
@@ -270,8 +274,10 @@ int main(void)
         }
 
         // Shadow map lookAt
-        glm::mat4 lightView = glm::lookAt(camera.m_Position + camera.m_Front * top * 0.7f + -lighters[0].direction * far_plane * 0.6f,
-                                          camera.m_Position + camera.m_Front * top * 0.7f,
+        glm::vec3 camera_front = camera.m_Front;// glm::normalize(glm::vec3(camera.m_Front.x, 0, camera.m_Front.z));
+
+        glm::mat4 lightView = glm::lookAt(camera.m_Position + camera_front * top + -lighters[0].direction * far_plane * 0.5f,
+                                          camera.m_Position + camera_front * top,
                                           glm::vec3(0.0f, 1.0f, 0.0f));
         // clear screen
         //glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -329,19 +335,19 @@ int main(void)
         shadowTransforms.push_back(shadowProj *
             glm::lookAt(lighters[3].position, lighters[3].position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
         
-        for (int i = 0; i < 6; i++)
-            cubemapDepthShader.setUniMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
-        
-        cubemapDepthShader.setUni3f("lightPos", lighters[3].position);
-        cubemapDepthShader.setUni1f("far_plane", far);
-        
-        glViewport(0, 0, 512, 512);
-        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-        glClear(GL_DEPTH_BUFFER_BIT);
-        
-        for (auto& model : models)
-            if (glm::length(model.Position - lighters[3].position) < 50)
-                model.Draw(cubemapDepthShader);
+		//for (int i = 0; i < 6; i++)
+		//    cubemapDepthShader.setUniMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
+		//
+		//cubemapDepthShader.setUni3f("lightPos", lighters[3].position);
+		//cubemapDepthShader.setUni1f("far_plane", far);
+        //
+        //glViewport(0, 0, 512, 512);
+        //glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        //glClear(GL_DEPTH_BUFFER_BIT);
+        //
+        //for (auto& model : models)
+        //    if (glm::length(model.Position - lighters[3].position) < 50)
+        //        model.Draw(cubemapDepthShader);
 
         //glCullFace(GL_BACK);
         // ======================================================================
@@ -369,17 +375,16 @@ int main(void)
         draw_shadow.setUni1i("shadowMap", 6);
 
         // attach cubemap
-        draw_shadow.setUni1f("far_plane", far);
-        glActiveTexture(GL_TEXTURE0 + 7);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, shadowCubemap.textureID);
-        draw_shadow.setUni1i("depthMap", 7);
+        //draw_shadow.setUni1f("far_plane", far);
+        //glActiveTexture(GL_TEXTURE0 + 7);
+        //glBindTexture(GL_TEXTURE_CUBE_MAP, shadowCubemap.textureID);
+        //draw_shadow.setUni1i("depthMap", 7);
 
         for (auto& model : models)
             model.Draw(draw_shadow);
 
-        
-        if (shadow_blur_flag)
-            gaussian_blur_func(shadow_raw, shadow_blur_buffer, gaussian_blur, FullScreenQuadVAO);
+        //if (shadow_blur_flag)
+        //    gaussian_blur_func(shadow_raw, shadow_blur_buffer, gaussian_blur, FullScreenQuadVAO);
 
         // ================================ Render scene ===================================
         window.UseViewPort();

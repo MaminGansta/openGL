@@ -23,8 +23,8 @@ namespace gl
 
         // point
         float constant = 1.0f;
-        float linear = 0.045f;
-        float quadratic = 0.0075f;
+        float linear = 0.35;
+        float quadratic = 0.44;
 
         // spot
         float cutOff = glm::cos(glm::radians(12.5f));
